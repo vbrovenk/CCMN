@@ -1,0 +1,3 @@
+[console_scripts]
+pw=pw.__main__:pw
+
