@@ -11,6 +11,12 @@ from tkinter.ttk import *
 from tkinter import Menu 
 from PIL import ImageTk, Image
 
+from threading import Thread
+import time
+
+urlCMX = "https://cisco-cmx.unit.ua"
+usernameCMX = "RO"
+passwordCMX = "just4reading"
 
 def getFloorImage(url, username, password, mapdatajson):
 	mapImages = []
@@ -94,7 +100,6 @@ def takeCooords(url, password, username):
 		print("got data")
 		# print(json.dumps(location, indent = 5))
 
-		print(json.dumps(location[1], indent = 5))
 	except Exception as e:
 		print(e)
 	return (location)
@@ -121,18 +126,48 @@ def resizeImgs():
 	im5 = im1.resize((width, height), Image.ANTIALIAS)
 	im5.save("maps/3rdFloor" + ".jpg")
 
-def on_tab_selected(event):
+
+thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
+
+def printDevices(canvas, needFloor):
+	while True:
+		if(thread_Floors[needFloor] == False):
+			break
+		coords = takeCooords(urlCMX, passwordCMX, usernameCMX)
+		time.sleep(1)
+		for device in coords:
+			if (needFloor in device["mapInfo"]["mapHierarchyString"]):
+				mapCoordinateX = device["mapCoordinate"]["x"]
+				mapCoordinateY = device["mapCoordinate"]["y"]
+				canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue')
+
+
+def on_tab_selected(event, canvas1, canvas2, canvas3):
 	selected_tab = event.widget.select()
 	tab_text = event.widget.tab(selected_tab, "text")
 
+	global thread_Floors
+	thread1 = Thread(target=printDevices, args=(canvas1, "1st_Floor",))
+	
 	if tab_text == "1st Floor":
-		print("First floor")
+		thread_Floors = {"1st_Floor":True, "2nd_Floor":False, "3rd_Floor":False}
+
+		# thread1 = Thread(target=printDevices, args=(canvas1, "1st_Floor",))
+		thread1.start()
+
 	if tab_text == "2nd Floor":
+		thread_Floors = {"1st_Floor":False, "2nd_Floor":True, "3rd_Floor":False}
+		thread2 = Thread(target=printDevices, args=(canvas2, "2nd_Floor",))
+		thread2.start()
 		print("second floor")
-	if tab_text == "3rd Floor":
+	# if tab_text == "3rd Floor":
+	# 	thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":True}
+	# 	thread3 = Thread(target=printDevices, args=(canvas3, "3rd_Floor",))
+	# 	thread3.start()
+
 		print("third floor")
 
-def createGUI(coords):
+def createGUI():
 	x = 1965
 	y = 897
 
@@ -152,8 +187,7 @@ def createGUI(coords):
 		"configure": {"padding": [50, 10], "background": 'white' },
 		"map":       {"background": [("selected", 'cyan')],
 		"expand": [("selected", [0, 0, 0, 0])] } } 
-	} 
-		)
+	})
 
 	style.theme_use("yummy")
 
@@ -166,8 +200,6 @@ def createGUI(coords):
 	tab2.pack()
 	tab3.pack()
 
-	tab_control.bind("<<NotebookTabChanged>>", on_tab_selected)
-
 	tab_control.add(tab1, text='1st Floor')
 	tab_control.add(tab2, text='2nd Floor')
 	tab_control.add(tab3, text='3rd Floor')
@@ -177,7 +209,10 @@ def createGUI(coords):
 	######## CANVAS ##########
 
 	####### 1st
+	# canvas1 = Canvas(tab1, width=1280, height=720, bg='black')
+	global canvas1
 	canvas1 = Canvas(tab1, width=1280, height=720, bg='black')
+
 	canvas1.pack(side='left')
 
 	image1 = ImageTk.PhotoImage(Image.open("maps/1stFloor.jpg"))
@@ -195,16 +230,15 @@ def createGUI(coords):
 	image3 = ImageTk.PhotoImage(Image.open("maps/3rdFloor.jpg"))
 	canvas3.create_image(0, 0, image = image3, anchor = 'nw')
 
-
-
+	tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =canvas1, arg2 = canvas2, arg3 = canvas3: on_tab_selected(event, arg1, arg2, arg3))
 
 	window.mainloop()
 
 def main():
 	########## CMX #########
-	urlCMX = "https://cisco-cmx.unit.ua"
-	usernameCMX = "RO"
-	passwordCMX = "just4reading"
+	# urlCMX = "https://cisco-cmx.unit.ua"
+	# usernameCMX = "RO"
+	# passwordCMX = "just4reading"
 
 	###### PRECENSE #######
 	url = "https://cisco-presence.unit.ua"
@@ -227,7 +261,7 @@ def main():
 	
 	
 	#Take coords
-	coords = takeCooords(urlCMX, passwordCMX, usernameCMX)
+	# coords = takeCooords(urlCMX, passwordCMX, usernameCMX)
 	
 
 
@@ -242,7 +276,7 @@ def main():
 
 
 	###### GUI ######
-	createGUI(coords)
+	createGUI()
 
 if __name__ == "__main__":
 	main()
