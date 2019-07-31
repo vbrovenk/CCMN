@@ -148,9 +148,13 @@ def createGUI(coords):
 	style.theme_use("yummy")
 
 	tab_control = ttk.Notebook(window)
-	tab1 = ttk.Frame(tab_control)  
-	tab2 = ttk.Frame(tab_control)
-	tab3 = ttk.Frame(tab_control)
+	tab1 = Frame(tab_control)
+	tab2 = Frame(tab_control)
+	tab3 = Frame(tab_control)
+
+	tab1.pack()
+	tab2.grid(column = 0, row = 0)
+	tab3.grid(column = 0, row = 0)
 
 	tab_control.add(tab1, text='1st Floor')  
 	tab_control.add(tab2, text='2nd Floor')  
@@ -159,6 +163,7 @@ def createGUI(coords):
 	img1 = ImageTk.PhotoImage(Image.open("maps/1stFloor.jpg"))
 	panel1 = Label(tab1, image = img1)
 	panel1.grid(column = 20, row = 30)
+	# panel1.pack(side="left")
 
 	img2 = ImageTk.PhotoImage(Image.open("maps/2ndFloor.jpg"))
 	panel2 = Label(tab2, image = img2)
@@ -170,6 +175,9 @@ def createGUI(coords):
 
 	tab_control.pack(expand=1, fill='both')
 	#######################################
+
+	######## CANVAS ##########
+	
 
 
 
