@@ -121,6 +121,16 @@ def resizeImgs():
 	im5 = im1.resize((width, height), Image.ANTIALIAS)
 	im5.save("maps/3rdFloor" + ".jpg")
 
+def on_tab_selected(event):
+	selected_tab = event.widget.select()
+	tab_text = event.widget.tab(selected_tab, "text")
+
+	if tab_text == "1st Floor":
+		print("First floor")
+	if tab_text == "2nd Floor":
+		print("second floor")
+	if tab_text == "3rd Floor":
+		print("third floor")
 
 def createGUI(coords):
 	x = 1965
@@ -153,31 +163,38 @@ def createGUI(coords):
 	tab3 = Frame(tab_control)
 
 	tab1.pack()
-	tab2.grid(column = 0, row = 0)
-	tab3.grid(column = 0, row = 0)
+	tab2.pack()
+	tab3.pack()
 
-	tab_control.add(tab1, text='1st Floor')  
-	tab_control.add(tab2, text='2nd Floor')  
-	tab_control.add(tab3, text='3rd Floor')  
+	tab_control.bind("<<NotebookTabChanged>>", on_tab_selected)
 
-	img1 = ImageTk.PhotoImage(Image.open("maps/1stFloor.jpg"))
-	panel1 = Label(tab1, image = img1)
-	panel1.grid(column = 20, row = 30)
-	# panel1.pack(side="left")
-
-	img2 = ImageTk.PhotoImage(Image.open("maps/2ndFloor.jpg"))
-	panel2 = Label(tab2, image = img2)
-	panel2.grid(column = 20, row = 30)
-
-	img3 = ImageTk.PhotoImage(Image.open("maps/3rdFloor.jpg"))
-	panel3 = Label(tab3, image = img3)
-	panel3.grid(column = 20, row = 30)
+	tab_control.add(tab1, text='1st Floor')
+	tab_control.add(tab2, text='2nd Floor')
+	tab_control.add(tab3, text='3rd Floor')
 
 	tab_control.pack(expand=1, fill='both')
-	#######################################
 
 	######## CANVAS ##########
-	
+
+	####### 1st
+	canvas1 = Canvas(tab1, width=1280, height=720, bg='black')
+	canvas1.pack(side='left')
+
+	image1 = ImageTk.PhotoImage(Image.open("maps/1stFloor.jpg"))
+	canvas1.create_image(0, 0, image = image1, anchor = 'nw')
+	###### 2nd
+	canvas2 = Canvas(tab2, width=1280, height=720, bg='black')
+	canvas2.pack(side='left')
+
+	image2 = ImageTk.PhotoImage(Image.open("maps/2ndFloor.jpg"))
+	canvas2.create_image(0, 0, image = image2, anchor = 'nw')
+	###### 3rd
+	canvas3 = Canvas(tab3, width=1280, height=720, bg='black')
+	canvas3.pack(side='left')
+
+	image3 = ImageTk.PhotoImage(Image.open("maps/3rdFloor.jpg"))
+	canvas3.create_image(0, 0, image = image3, anchor = 'nw')
+
 
 
 
