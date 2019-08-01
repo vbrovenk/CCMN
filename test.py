@@ -5,14 +5,16 @@ import urllib3
 import shutil
 import os
 
-from tkinter import *
-from tkinter import ttk
+# from tkinter import *
+# from tkinter import ttk
 from tkinter.ttk import * 
 from tkinter import Menu 
 from PIL import ImageTk, Image
 
-from threading import Thread
-import time
+# from threading import Thread
+# import time
+
+from window import Window
 
 urlCMX = "https://cisco-cmx.unit.ua"
 usernameCMX = "RO"
@@ -127,112 +129,56 @@ def resizeImgs():
 	im5.save("maps/3rdFloor" + ".jpg")
 
 
-thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
+# thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
 
-def printDevices(canvas, needFloor):
-	while True:
-		if(thread_Floors[needFloor] == False):
-			break
-		coords = takeCooords(urlCMX, passwordCMX, usernameCMX)
-		time.sleep(1)
-		for device in coords:
-			if (needFloor in device["mapInfo"]["mapHierarchyString"]):
-				mapCoordinateX = device["mapCoordinate"]["x"]
-				mapCoordinateY = device["mapCoordinate"]["y"]
-				canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue')
+# def printDevices(canvas, needFloor):
+# 	while True:
+# 		if(thread_Floors[needFloor] == False):
+# 			break
+# 		coords = takeCooords(urlCMX, passwordCMX, usernameCMX)
+# 		time.sleep(1)
+# 		for device in coords:
+# 			if (needFloor in device["mapInfo"]["mapHierarchyString"]):
+# 				mapCoordinateX = device["mapCoordinate"]["x"]
+# 				mapCoordinateY = device["mapCoordinate"]["y"]
+# 				canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue')
 
 
-def on_tab_selected(event, canvas1, canvas2, canvas3):
-	selected_tab = event.widget.select()
-	tab_text = event.widget.tab(selected_tab, "text")
+# def on_tab_selected(event, canvas1, canvas2, canvas3):
+# 	selected_tab = event.widget.select()
+# 	tab_text = event.widget.tab(selected_tab, "text")
 
-	global thread_Floors
-	thread1 = Thread(target=printDevices, args=(canvas1, "1st_Floor",))
+# 	global thread_Floors
+# 	thread1 = Thread(target=printDevices, args=(canvas1, "1st_Floor",))
 	
-	if tab_text == "1st Floor":
-		thread_Floors = {"1st_Floor":True, "2nd_Floor":False, "3rd_Floor":False}
+# 	if tab_text == "1st Floor":
+# 		thread_Floors = {"1st_Floor":True, "2nd_Floor":False, "3rd_Floor":False}
 
-		# thread1 = Thread(target=printDevices, args=(canvas1, "1st_Floor",))
-		thread1.start()
+# 		# thread1 = Thread(target=printDevices, args=(canvas1, "1st_Floor",))
+# 		thread1.start()
 
-	if tab_text == "2nd Floor":
-		thread_Floors = {"1st_Floor":False, "2nd_Floor":True, "3rd_Floor":False}
-		thread2 = Thread(target=printDevices, args=(canvas2, "2nd_Floor",))
-		thread2.start()
-		print("second floor")
-	# if tab_text == "3rd Floor":
-	# 	thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":True}
-	# 	thread3 = Thread(target=printDevices, args=(canvas3, "3rd_Floor",))
-	# 	thread3.start()
+# 	if tab_text == "2nd Floor":
+# 		thread_Floors = {"1st_Floor":False, "2nd_Floor":True, "3rd_Floor":False}
+# 		thread2 = Thread(target=printDevices, args=(canvas2, "2nd_Floor",))
+# 		thread2.start()
+# 		print("second floor")
+# 	# if tab_text == "3rd Floor":
+# 	# 	thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":True}
+# 	# 	thread3 = Thread(target=printDevices, args=(canvas3, "3rd_Floor",))
+# 	# 	thread3.start()
 
-		print("third floor")
+# 		print("third floor")
 
 def createGUI():
-	x = 1965
-	y = 897
 
-	# resizeImgs()
-	window = Tk()
-	window.title("CCMN")
-	window.geometry(str(x) + "x" + str(y))
+	# tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =canvas1, arg2 = canvas2, arg3 = canvas3: on_tab_selected(event, arg1, arg2, arg3))
 
-	# ###### MENU #####
-	style = ttk.Style()
+	# window.mainloop()
 
-	style.theme_create( "yummy", parent="alt", 
-	settings=
-	{
-		"TNotebook": {"configure": {"tabmargins": [20, 10, 0, 20] } },
-		"TNotebook.Tab": {
-		"configure": {"padding": [50, 10], "background": 'white' },
-		"map":       {"background": [("selected", 'cyan')],
-		"expand": [("selected", [0, 0, 0, 0])] } } 
-	})
+	###### CLASS ########
+	mainWindow = Window()
 
-	style.theme_use("yummy")
-
-	tab_control = ttk.Notebook(window)
-	tab1 = Frame(tab_control)
-	tab2 = Frame(tab_control)
-	tab3 = Frame(tab_control)
-
-	tab1.pack()
-	tab2.pack()
-	tab3.pack()
-
-	tab_control.add(tab1, text='1st Floor')
-	tab_control.add(tab2, text='2nd Floor')
-	tab_control.add(tab3, text='3rd Floor')
-
-	tab_control.pack(expand=1, fill='both')
-
-	######## CANVAS ##########
-
-	####### 1st
-	# canvas1 = Canvas(tab1, width=1280, height=720, bg='black')
-	global canvas1
-	canvas1 = Canvas(tab1, width=1280, height=720, bg='black')
-
-	canvas1.pack(side='left')
-
-	image1 = ImageTk.PhotoImage(Image.open("maps/1stFloor.jpg"))
-	canvas1.create_image(0, 0, image = image1, anchor = 'nw')
-	###### 2nd
-	canvas2 = Canvas(tab2, width=1280, height=720, bg='black')
-	canvas2.pack(side='left')
-
-	image2 = ImageTk.PhotoImage(Image.open("maps/2ndFloor.jpg"))
-	canvas2.create_image(0, 0, image = image2, anchor = 'nw')
-	###### 3rd
-	canvas3 = Canvas(tab3, width=1280, height=720, bg='black')
-	canvas3.pack(side='left')
-
-	image3 = ImageTk.PhotoImage(Image.open("maps/3rdFloor.jpg"))
-	canvas3.create_image(0, 0, image = image3, anchor = 'nw')
-
-	tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =canvas1, arg2 = canvas2, arg3 = canvas3: on_tab_selected(event, arg1, arg2, arg3))
-
-	window.mainloop()
+	mainWindow.start()
 
 def main():
 	########## CMX #########
