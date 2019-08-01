@@ -72,10 +72,64 @@ class Window:
 		self.image3 = ImageTk.PhotoImage(Image.open("maps/3rdFloor.jpg"))
 		self.canvas3.create_image(0, 0, image = self.image3, anchor = 'nw')
 
+		self.message = StringVar()
+		self.label = Label(self.window, text = "Input Mac Adress")
+		self.label.place(x = 1300, y = 124)
+		self.entry = Entry(self.window, textvariable = self.message)
+		self.entry.place(x = 1420, y = 120)
+		self.button = Button(self.window, text = "search", command = self.click)
+		self.button.place(x = 1620, y = 120)
+
+		#### MAC ADRESS ####
+		self.ssid = StringVar()
+		self.floor = StringVar()
+		self.manufacturer = StringVar()
+		self.coordX = DoubleVar()
+		self.coordY = DoubleVar()
+		
 		#### THREADS ####
 		self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
 
 
+	def give_info(self):
+		coords = self.takeCooords(Window.urlCMX, Window.passwordCMX, Window.usernameCMX)
+		print(json.dumps(coords, indent=5))
+		for device in coords:
+			if (self.message.get() in device["macAddress"]):
+				self.floor = device["mapInfo"]["mapHierarchyString"].split('>')[2]
+				self.ssid = device["ssId"]
+				self.manufacturer = device["manufacturer"]
+				self.coordX = device["mapCoordinate"]["x"]
+				self.coordY = device["mapCoordinate"]["y"]
+				# print ("%s, %s, %s, %f, %f" % (self.ssid, self.floor, self.manufacturer, self.coordX, self.coordY))
+				return True
+
+		return False
+		
+
+	def clear(self):
+		self.entry.delete(0, END)
+
+	def click(self):
+		if (len(self.message.get()) > 0):
+			if self.give_info() == True:
+				answer = Label(self.window, text = self.floor)
+				answer2 = Label(self.window, text = self.manufacturer)
+				
+				answer.place(x = 1300, y = 140)
+				answer2.place(x = 1300, y = 160)
+				
+				print("True")
+			else:
+				frame = Label(self.window, text = "Not Found")
+				frame.place(x = 1300, y = 140)
+				print("False")
+			self.clear()
+		else:
+			frame = Label(self.window, text = "Empty field")
+			frame.place(x = 1300, y = 140)
+			print("False")
+			self.clear()
 
 	def takeRequest(self, url, restAPI, username, password):
 		endpoint = url + restAPI
@@ -136,5 +190,4 @@ class Window:
 
 	def start(self):
 		self.tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =self.canvas1, arg2 = self.canvas2, arg3 = self.canvas3: self.on_tab_selected(event, arg1, arg2, arg3))
-		
 		self.window.mainloop()
