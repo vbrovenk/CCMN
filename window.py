@@ -91,6 +91,10 @@ class Window:
 		self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
 
 
+		self.answer = Label(self.window, text = self.floor)
+		self.answer2 = Label(self.window, text = self.manufacturer)
+
+
 	def give_info(self):
 		coords = self.takeCooords(Window.urlCMX, Window.passwordCMX, Window.usernameCMX)
 		print(json.dumps(coords, indent=5))
@@ -111,23 +115,25 @@ class Window:
 		self.entry.delete(0, END)
 
 	def click(self):
+		self.answer.destroy()
+		self.answer2.destroy()
 		if (len(self.message.get()) > 0):
 			if self.give_info() == True:
 				answer = Label(self.window, text = self.floor)
 				answer2 = Label(self.window, text = self.manufacturer)
 				
-				answer.place(x = 1300, y = 140)
-				answer2.place(x = 1300, y = 160)
+				answer.place(x = 1300, y = 150)
+				answer2.place(x = 1300, y = 170)
 				
 				print("True")
 			else:
-				frame = Label(self.window, text = "Not Found")
-				frame.place(x = 1300, y = 140)
+				self.answer = Label(self.window, text = "Not Found")
+				self.answer.place(x = 1300, y = 140)
 				print("False")
 			self.clear()
 		else:
-			frame = Label(self.window, text = "Empty field")
-			frame.place(x = 1300, y = 140)
+			self.answer = Label(self.window, text = "Empty field")
+			self.answer.place(x = 1300, y = 140)
 			print("False")
 			self.clear()
 
@@ -155,6 +161,7 @@ class Window:
 
 
 	def printDevices(self, canvas, needFloor):
+
 		while True:
 			if(self.thread_Floors[needFloor] == False):
 				print("END: " + needFloor)
@@ -165,6 +172,8 @@ class Window:
 				if (needFloor in device["mapInfo"]["mapHierarchyString"]):
 					mapCoordinateX = device["mapCoordinate"]["x"]
 					mapCoordinateY = device["mapCoordinate"]["y"]
+					mapCoordinateX -= 200
+					mapCoordinateY -= 51
 					canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue')
 
 	def on_tab_selected(self, event, canvas1, canvas2, canvas3):
