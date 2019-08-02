@@ -8,19 +8,29 @@ from PIL import ImageTk, Image
 from threading import Thread
 import time
 
+import cisco
+
 class Window:
 
 	urlCMX = "https://cisco-cmx.unit.ua"
 	usernameCMX = "RO"
 	passwordCMX = "just4reading"
 
-	def __init__(self):
+	url = "https://cisco-presence.unit.ua"
+	username = "RO"
+	password = "Passw0rd"
+
+	def __init__(self, siteId):
 		self.x = 1965
 		self.y = 897
+
+		self.siteId = siteId
 
 		self.window = Tk()
 		self.window.title("CCMN")
 		self.window.geometry(str(self.x) + "x" + str(self.y))
+
+		self.day = "/today"
 
 		self.style = ttk.Style()
 
@@ -43,14 +53,18 @@ class Window:
 		self.tab1 = Frame(self.tab_control)
 		self.tab2 = Frame(self.tab_control)
 		self.tab3 = Frame(self.tab_control)
+		self.tab4 = Frame(self.tab_control)
+
 
 		self.tab1.pack()
 		self.tab2.pack()
 		self.tab3.pack()
+		self.tab4.pack()
 
 		self.tab_control.add(self.tab1, text='1st Floor')
 		self.tab_control.add(self.tab2, text='2nd Floor')
 		self.tab_control.add(self.tab3, text='3rd Floor')
+		self.tab_control.add(self.tab4, text='Presence')
 
 		self.tab_control.pack(expand=1, fill='both')
 
@@ -72,39 +86,46 @@ class Window:
 		self.image3 = ImageTk.PhotoImage(Image.open("maps/3rdFloor.jpg"))
 		self.canvas3.create_image(0, 0, image = self.image3, anchor = 'nw')
 
-		self.message = StringVar()
-		self.label = Label(self.window, text = "Input Mac Adress")
-		self.label.place(x = 1300, y = 124)
-		self.entry = Entry(self.window, textvariable = self.message)
-		self.entry.place(x = 1420, y = 120)
-		self.button = Button(self.window, text = "search", command = self.click)
-		self.button.place(x = 1620, y = 120)
+		# # Presence
+
+		# self.message = StringVar()
+		# self.label = Label(self.window, text = "Input Mac Adress")
+		# self.label.place(x = 1300, y = 124)
+		# self.entry = Entry(self.window, textvariable = self.message)
+		# self.entry.place(x = 1420, y = 120)
+		# self.button = Button(self.window, text = "search", command = self.click)
+		# self.button.place(x = 1620, y = 120)
 
 		#### MAC ADRESS ####
+		self.MACaddress = StringVar()
+		self.detectingControllers = StringVar()
 		self.ssid = StringVar()
 		self.floor = StringVar()
 		self.manufacturer = StringVar()
-		self.coordX = DoubleVar()
-		self.coordY = DoubleVar()
+		self.coordX = StringVar()
+		self.coordY = StringVar()
 		
 		#### THREADS ####
 		self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
 
 
-		self.answer = Label(self.window, text = self.floor)
-		self.answer2 = Label(self.window, text = self.manufacturer)
+		self.a1 = Label(self.window, text ="")
+		self.a2 = Label(self.window, text ="")
+		self.a3 = Label(self.window, text ="")
 
 
 	def give_info(self):
 		coords = self.takeCooords(Window.urlCMX, Window.passwordCMX, Window.usernameCMX)
 		print(json.dumps(coords, indent=5))
 		for device in coords:
-			if (self.message.get() in device["macAddress"]):
+			if (self.message.get() == device["macAddress"]):
+				self.MACaddress = device["macAddress"]
+				self.detectingControllers = device["detectingControllers"]
 				self.floor = device["mapInfo"]["mapHierarchyString"].split('>')[2]
 				self.ssid = device["ssId"]
 				self.manufacturer = device["manufacturer"]
-				self.coordX = device["mapCoordinate"]["x"]
-				self.coordY = device["mapCoordinate"]["y"]
+				self.coordX = str(device["mapCoordinate"]["x"])
+				self.coordY = str(device["mapCoordinate"]["y"])
 				# print ("%s, %s, %s, %f, %f" % (self.ssid, self.floor, self.manufacturer, self.coordX, self.coordY))
 				return True
 
@@ -115,25 +136,34 @@ class Window:
 		self.entry.delete(0, END)
 
 	def click(self):
-		self.answer.destroy()
-		self.answer2.destroy()
+		self.a1.destroy()
+		self.a2.destroy()
+		self.a3.destroy()
 		if (len(self.message.get()) > 0):
 			if self.give_info() == True:
-				answer = Label(self.window, text = self.floor)
-				answer2 = Label(self.window, text = self.manufacturer)
+
+				self.a1 = Label(self.window, text=self.MACaddress, font="Times 18", fg='#808080')
+				self.a1.place(x = 1500, y = 220)
+				self.a2 = Label(self.window, text=self.detectingControllers, font="Times 18", fg='#808080')
+				self.a2.place(x = 1500, y = 300)
+				self.a3 = Label(self.window, text="X: " + self.coordX + " Y: " + self.coordY, font="Times 18", fg='#808080')
+				self.a3.place(x = 1500, y = 370)
+
+				# answer = Label(self.window, text = self.floor)
+				# answer2 = Label(self.window, text = self.manufacturer)
 				
-				answer.place(x = 1300, y = 150)
-				answer2.place(x = 1300, y = 170)
-				
+				# answer.place(x = 1300, y = 150)
+				# answer2.place(x = 1300, y = 170)
+
 				print("True")
 			else:
-				self.answer = Label(self.window, text = "Not Found")
-				self.answer.place(x = 1300, y = 140)
+				self.a1 = Label(self.window, text = "Not Found", font="Times 26", fg='#b30000')
+				self.a1.place(x = 1300, y = 160)
 				print("False")
-			self.clear()
+				self.clear()
 		else:
-			self.answer = Label(self.window, text = "Empty field")
-			self.answer.place(x = 1300, y = 140)
+			self.a1 = Label(self.window, text = "Empty field", font="Times 26", fg='#b30000')
+			self.a1.place(x = 1300, y = 160)
 			print("False")
 			self.clear()
 
@@ -151,7 +181,7 @@ class Window:
 	def takeCooords(self, url, password, username):
 		location = None
 		try:
-			location = self.takeRequest(url, "/api/location/v2/clients", username, password)
+			location = self.takeRequest(Window.url, "/api/location/v2/clients", Window.username, Window.password)
 			print("got data")
 			# print(json.dumps(location, indent = 5))
 
@@ -172,31 +202,102 @@ class Window:
 				if (needFloor in device["mapInfo"]["mapHierarchyString"]):
 					mapCoordinateX = device["mapCoordinate"]["x"]
 					mapCoordinateY = device["mapCoordinate"]["y"]
-					mapCoordinateX -= 200
-					mapCoordinateY -= 51
+					mapCoordinateX *= 0.82
+					mapCoordinateY *= 0.92
 					canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue')
+
+	def createFields(self):
+		self.message = StringVar()
+		self.label = Label(self.window, text = "Input Mac Adress")
+		self.label.place(x = 1300, y = 124)
+		self.entry = Entry(self.window, textvariable = self.message)
+		self.entry.place(x = 1420, y = 120)
+		self.button = Button(self.window, text = "search", command = self.click)
+		self.button.place(x = 1620, y = 120)
+
+		self.Mac = Label(self.window, text="MAC Address:", font="Times 26", fg='#666699')
+		self.Mac.place(x = 1500, y = 170)
+		self.Ip = Label(self.window, text="IP Address:", font="Times 26", fg='#666699')
+		self.Ip.place(x = 1500, y = 250)
+		self.Coords = Label(self.window, text="Co-ordinates:", font="Times 26", fg='#666699')
+		self.Coords.place(x = 1500, y = 330)
+	
+	def callbackFunc(self, event):
+		if (self.comboExample.current() == 0):
+			self.day = "/today"
+		elif(self.comboExample.current() == 1):
+			self.day = "/yesterday"
+		elif(self.comboExample.current() == 2):
+			self.day = "/3days"
+		elif(self.comboExample.current() == 3):
+			self.day = "/lastweek"
+		elif(self.comboExample.current() == 4):
+			self.day = "/lastmonth"
+		# elif(self.comboExample.current() == 1):
+		# 	self.day = "today"
+		# elif(self.comboExample.current() == 1):
+		# 	self.day = "today"
+		
 
 	def on_tab_selected(self, event, canvas1, canvas2, canvas3):
 		selected_tab = event.widget.select()
 		tab_text = event.widget.tab(selected_tab, "text")
 
-		thread1 = Thread(target=self.printDevices, args=(self.canvas1, "1st_Floor",))
-		thread2 = Thread(target=self.printDevices, args=(self.canvas2, "2nd_Floor",))
+		thread1 = Thread(target=self.printDevices, args=(self.canvas1, "1st_Floor",), daemon=True)
+		thread2 = Thread(target=self.printDevices, args=(self.canvas2, "2nd_Floor",), daemon=True)
 		
 		if tab_text == "1st Floor":
+			self.createFields()
 			self.thread_Floors = {"1st_Floor":True, "2nd_Floor":False, "3rd_Floor":False}
 			thread1.start()
 
 		if tab_text == "2nd Floor":
+			self.createFields()
+
 			self.thread_Floors = {"1st_Floor":False, "2nd_Floor":True, "3rd_Floor":False}
 			thread2.start()
 			print("second floor")
 		if tab_text == "3rd Floor":
+			self.createFields()
+
 			self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":True}
-			thread3 = Thread(target=self.printDevices, args=(self.canvas3, "3rd_Floor",))
+			thread3 = Thread(target=self.printDevices, args=(self.canvas3, "3rd_Floor",), daemon=True)
 			thread3.start()
 			print("third floor")
+		if (tab_text == "Presence"):
+			self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
+
+			self.label.destroy()
+			self.button.destroy()
+			self.entry.destroy()
+			self.Mac.destroy()
+			self.Ip.destroy()
+			self.Coords.destroy()
+
+			labelTop = Label(self.window, text = "Choose your favourite month")
+			labelTop.place(x = 20, y = 300)
+
+			self.comboExample = ttk.Combobox(self.window, 
+										values=[
+												"Today", 
+												"Yesterday",
+												"Last 3 Days",
+												"Last 7 Days",
+												"Last 30 Days",
+												"This Month",
+												"Last Month"])
+			print(dict(self.comboExample)) 
+			self.comboExample.place(x = 20, y = 320)
+			self.comboExample.current(0)
+
+			print(self.comboExample.current(), self.comboExample.get())
+			self.comboExample.bind("<<ComboboxSelected>>", self.callbackFunc)
+
+			cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
 
 	def start(self):
 		self.tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =self.canvas1, arg2 = self.canvas2, arg3 = self.canvas3: self.on_tab_selected(event, arg1, arg2, arg3))
+
+
+		
 		self.window.mainloop()

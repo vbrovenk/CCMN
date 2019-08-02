@@ -57,6 +57,11 @@ def getFloorImage(url, username, password, mapdatajson):
 				except Exception as e:
 					print(e)
 
+########## API'S #########
+sites = "/api/config/v1/sites"
+visitors = "/api/presence/v1/visitor/count"
+repeat = "/api/presence/v1/repeatvisitors/count"
+
 def takeSiteId(url, username, password):
 	data = takeRequest(url, sites, username, password)
 	id = data[0]["aesUId"]
@@ -76,21 +81,21 @@ def takeRequest(url, restAPI, username, password):
 
 
 
-def takeConnectedDevices(url, password, username):
-	devices = connected + "/today" + "?siteId=" + str(id)
+def takeConnectedDevices(id, url, password, username, mainWindow):
+	devices = connected + mainWindow.day + "?siteId=" + str(id)
 	answer = takeRequest(url, devices, username, password)
 	# print(devices)
-	print(answer)
+	# print(answer)
 	# return (answer)
 
-def takeAllVisitors(url, password, username):
-	devices = visitors + "/today" + "?siteId=" + str(id)
+def takeAllVisitors(url, password, username, mainWindow):
+	devices = visitors + mainWindow.day + "?siteId=" + str(id)
 	# print(devices)
 	answer = takeRequest(url, devices, username, password)
 	print(answer)
 
-def takeRepeatVisitors(url, password, username):
-	devices = repeat + "/today" + "?siteId=" + str(id)
+def takeRepeatVisitors(url, password, username, mainWindow):
+	devices = repeat + mainWindow.day + "?siteId=" + str(id)
 	# print(devices)
 	answer = takeRequest(url, devices, username, password)
 	print(answer)
@@ -106,11 +111,7 @@ def takeCooords(url, password, username):
 		print(e)
 	return (location)
 
-########## API'S #########
-sites = "/api/config/v1/sites"
-connected = "/api/presence/v1/connected/count"
-visitors = "/api/presence/v1/visitor/count"
-repeat = "/api/presence/v1/repeatvisitors/count"
+
 
 def resizeImgs():
 	width = 1280
@@ -169,16 +170,20 @@ def resizeImgs():
 
 # 		print("third floor")
 
+url = "https://cisco-presence.unit.ua"
+username = "RO"
+password = "Passw0rd"
+
 def createGUI():
 
-	# tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =canvas1, arg2 = canvas2, arg3 = canvas3: on_tab_selected(event, arg1, arg2, arg3))
 
-	# window.mainloop()
-
+	# global id
+	id = takeSiteId(url, username, password)
 	###### CLASS ########
-	mainWindow = Window()
+	mainWindow = Window(id)
 
 	mainWindow.start()
+	# takeConnectedDevices(id, url, password, username, mainWindow)
 
 def main():
 	########## CMX #########
@@ -187,16 +192,13 @@ def main():
 	# passwordCMX = "just4reading"
 
 	###### PRECENSE #######
-	url = "https://cisco-presence.unit.ua"
-	username = "RO"
-	password = "Passw0rd"
+	# url = "https://cisco-presence.unit.ua"
+	# username = "RO"
+	# password = "Passw0rd"
 
-	# global id
-	# id = takeSiteId(url, username, password)
-
-	# takeConnectedDevices(url, password, username)
-	# takeAllVisitors(url, password, username)
-	# takeRepeatVisitors(url, password, username)
+	# takeConnectedDevices(url, password, username, mainWindow)
+	# takeAllVisitors(url, password, username, mainWindow)
+	# takeRepeatVisitors(url, password, username, mainWindow)
 
 	# endpoint = url + "/api/presence/v1/visitor/count/today?siteId=1513804707441"
 	# print(endpoint)
