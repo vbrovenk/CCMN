@@ -181,7 +181,7 @@ class Window:
 	def takeCooords(self, url, password, username):
 		location = None
 		try:
-			location = self.takeRequest(Window.url, "/api/location/v2/clients", Window.username, Window.password)
+			location = self.takeRequest(url, "/api/location/v2/clients", username, password)
 			print("got data")
 			# print(json.dumps(location, indent = 5))
 
