@@ -21,5 +21,5 @@ def takeConnectedDevices(id, url, password, username, mainWindow):
 	devices = connected + mainWindow.day + "?siteId=" + str(id)
 	answer = takeRequest(url, devices, username, password)
 	# print(devices)
-	# print(answer)
+	print(answer)
 	# return (answer)

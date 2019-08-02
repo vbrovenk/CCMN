@@ -237,6 +237,9 @@ class Window:
 		# 	self.day = "today"
 		# elif(self.comboExample.current() == 1):
 		# 	self.day = "today"
+
+		cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
+
 		
 
 	def on_tab_selected(self, event, canvas1, canvas2, canvas3):
@@ -293,7 +296,7 @@ class Window:
 			print(self.comboExample.current(), self.comboExample.get())
 			self.comboExample.bind("<<ComboboxSelected>>", self.callbackFunc)
 
-			cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
+			# cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
 
 	def start(self):
 		self.tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =self.canvas1, arg2 = self.canvas2, arg3 = self.canvas3: self.on_tab_selected(event, arg1, arg2, arg3))
