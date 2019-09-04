@@ -85,7 +85,7 @@ def takeConnectedDevices(id, url, password, username, mainWindow):
 	devices = connected + mainWindow.day + "?siteId=" + str(id)
 	answer = takeRequest(url, devices, username, password)
 	# print(devices)
-	# print(answer)
+	print(answer)
 	# return (answer)
 
 def takeAllVisitors(url, password, username, mainWindow):
@@ -129,47 +129,6 @@ def resizeImgs():
 	im5 = im1.resize((width, height), Image.ANTIALIAS)
 	im5.save("maps/3rdFloor" + ".jpg")
 
-
-# thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
-
-# def printDevices(canvas, needFloor):
-# 	while True:
-# 		if(thread_Floors[needFloor] == False):
-# 			break
-# 		coords = takeCooords(urlCMX, passwordCMX, usernameCMX)
-# 		time.sleep(1)
-# 		for device in coords:
-# 			if (needFloor in device["mapInfo"]["mapHierarchyString"]):
-# 				mapCoordinateX = device["mapCoordinate"]["x"]
-# 				mapCoordinateY = device["mapCoordinate"]["y"]
-# 				canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue')
-
-
-# def on_tab_selected(event, canvas1, canvas2, canvas3):
-# 	selected_tab = event.widget.select()
-# 	tab_text = event.widget.tab(selected_tab, "text")
-
-# 	global thread_Floors
-# 	thread1 = Thread(target=printDevices, args=(canvas1, "1st_Floor",))
-	
-# 	if tab_text == "1st Floor":
-# 		thread_Floors = {"1st_Floor":True, "2nd_Floor":False, "3rd_Floor":False}
-
-# 		# thread1 = Thread(target=printDevices, args=(canvas1, "1st_Floor",))
-# 		thread1.start()
-
-# 	if tab_text == "2nd Floor":
-# 		thread_Floors = {"1st_Floor":False, "2nd_Floor":True, "3rd_Floor":False}
-# 		thread2 = Thread(target=printDevices, args=(canvas2, "2nd_Floor",))
-# 		thread2.start()
-# 		print("second floor")
-# 	# if tab_text == "3rd Floor":
-# 	# 	thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":True}
-# 	# 	thread3 = Thread(target=printDevices, args=(canvas3, "3rd_Floor",))
-# 	# 	thread3.start()
-
-# 		print("third floor")
-
 url = "https://cisco-presence.unit.ua"
 username = "RO"
 password = "Passw0rd"
@@ -183,46 +142,10 @@ def createGUI():
 	mainWindow = Window(id)
 
 	mainWindow.start()
+	takeConnectedDevices(id, url, password, username, mainWindow)
 	# takeConnectedDevices(id, url, password, username, mainWindow)
 
 def main():
-	########## CMX #########
-	# urlCMX = "https://cisco-cmx.unit.ua"
-	# usernameCMX = "RO"
-	# passwordCMX = "just4reading"
-
-	###### PRECENSE #######
-	# url = "https://cisco-presence.unit.ua"
-	# username = "RO"
-	# password = "Passw0rd"
-
-	# takeConnectedDevices(url, password, username, mainWindow)
-	# takeAllVisitors(url, password, username, mainWindow)
-	# takeRepeatVisitors(url, password, username, mainWindow)
-
-	# endpoint = url + "/api/presence/v1/visitor/count/today?siteId=1513804707441"
-	# print(endpoint)
-
-	#Get Images of Maps
-	# mapdatajson = takeRequest(urlCMX, "/api/config/v1/maps", usernameCMX, passwordCMX)
-	# getFloorImage(urlCMX, usernameCMX, passwordCMX, mapdatajson)
-	
-	
-	#Take coords
-	# coords = takeCooords(urlCMX, passwordCMX, usernameCMX)
-	
-
-
-	# try:
-	# 	mapdata = requests.request("GET", endpoint, auth=(username, password), verify=False)
-	# 	print("got maps")
-	# 	# mapdatajson = json.loads(mapdata.text)
-	# 	print(json.dumps(mapdata.json(), indent=4))
-
-	# except Exception as e:
-	# 	print(e)
-
-
 	###### GUI ######
 	createGUI()
 
