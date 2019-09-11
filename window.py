@@ -24,6 +24,8 @@ class Window:
 		self.x = 1965
 		self.y = 897
 
+		self.detector = False
+
 		self.siteId = siteId
 
 		self.window = Tk()
@@ -195,7 +197,6 @@ class Window:
 
 
 	def printDevices(self, canvas, needFloor):
-
 		while True:
 			if(self.thread_Floors[needFloor] == False):
 				print("END: " + needFloor)
@@ -244,38 +245,46 @@ class Window:
 
 		cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
 
-	def delete_presence():
-		for i in (5):
-			self.labels_presence.destroy()	
+	def cleaner(self):
+		for i in range(5):
+			self.labels_presence[i].destroy()
+		self.labelTop.destroy()
+		self.comboExample.destroy()
 
 	def on_tab_selected(self, event, canvas1, canvas2, canvas3):
 		selected_tab = event.widget.select()
 		tab_text = event.widget.tab(selected_tab, "text")
+		
+		if tab_text != "Presence" and self.detector == False:
+			self.createFields()
+			self.detector = True
 
 		thread1 = Thread(target=self.printDevices, args=(self.canvas1, "1st_Floor",), daemon=True)
-		thread2 = Thread(target=self.printDevices, args=(self.canvas2, "2nd_Floor",), daemon=True)
-		
+
 		if tab_text == "1st Floor":
-			self.createFields()
+			# self.createFields()
 			self.thread_Floors = {"1st_Floor":True, "2nd_Floor":False, "3rd_Floor":False}
+			# self.cleaner()
 			thread1.start()
-			self.delete_presence()
 
 		if tab_text == "2nd Floor":
-			self.createFields()
-
+			# self.createFields()
 			self.thread_Floors = {"1st_Floor":False, "2nd_Floor":True, "3rd_Floor":False}
+			thread2 = Thread(target=self.printDevices, args=(self.canvas2, "2nd_Floor",), daemon=True)
+			# self.cleaner()
 			thread2.start()
-			print("second floor")
+			# print("second floor")
 		if tab_text == "3rd Floor":
-			self.createFields()
+			# self.createFields()
 
 			self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":True}
 			thread3 = Thread(target=self.printDevices, args=(self.canvas3, "3rd_Floor",), daemon=True)
+			# self.cleaner()
 			thread3.start()
-			print("third floor")
+			# print("third floor")
 		if (tab_text == "Presence"):
 			self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
+			self.detector = False
 
 			self.label.destroy()
 			self.button.destroy()
@@ -286,15 +295,16 @@ class Window:
 
 			for i in range(5):
 				self.labels_presence.append(
-                    Label(self.window, text=self.names_presence[i], font=('Times', 24, 'bold'), bd=0, bg = self.labels_colors[i], fg='#ffffff',
-                          width=18, height=1))
-			for labl in self.labels_presence:
-				labl.place(x = 100 + self.labels_presence.index(labl) * 300, y = 100)
+					Label(self.tab4, text=self.names_presence[i], font=('Times', 24, 'bold'), bd=0, bg = self.labels_colors[i], fg='#ffffff',
+					width=18, height=1))
+				self.labels_presence[i].place(x = 100 + i * 300, y = 100)
+			# for labl in self.labels_presence:
+			# 	labl.place(x = 100 + self.labels_presence.index(labl) * 300, y = 100)
 
-			labelTop = Label(self.window, text = "Choose your favourite month")
-			labelTop.place(x = 20, y = 300)
+			self.labelTop = Label(self.window, text = "Choose your favourite month")
+			self.labelTop.place(x = 20, y = 300)
 
-			self.comboExample = ttk.Combobox(self.window, 
+			self.comboExample = ttk.Combobox(self.tab4, 
 										values=[
 												"Today", 
 												"Yesterday",
@@ -303,11 +313,11 @@ class Window:
 												"Last 30 Days",
 												"This Month",
 												"Last Month"])
-			print(dict(self.comboExample)) 
+			# print(dict(self.comboExample)) 
 			self.comboExample.place(x = 20, y = 320)
 			self.comboExample.current(0)
 
-			print(self.comboExample.current(), self.comboExample.get())
+			# print(self.comboExample.current(), self.comboExample.get())
 			self.comboExample.bind("<<ComboboxSelected>>", self.callbackFunc)
 
 			# cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
