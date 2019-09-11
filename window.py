@@ -173,7 +173,7 @@ class Window:
 
 	def takeRequest(self, url, restAPI, username, password):
 		endpoint = url + restAPI
-		print("Try URL: " + endpoint)
+		# print("Try URL: " + endpoint)
 		data = None
 		try:
 			returnData = requests.request("GET", endpoint, auth=(username, password), verify=False)
@@ -244,10 +244,6 @@ class Window:
 
 		cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
 
-	def delete_presence():
-		for i in (5):
-			self.labels_presence.destroy()	
-
 	def on_tab_selected(self, event, canvas1, canvas2, canvas3):
 		selected_tab = event.widget.select()
 		tab_text = event.widget.tab(selected_tab, "text")
@@ -259,7 +255,6 @@ class Window:
 			self.createFields()
 			self.thread_Floors = {"1st_Floor":True, "2nd_Floor":False, "3rd_Floor":False}
 			thread1.start()
-			self.delete_presence()
 
 		if tab_text == "2nd Floor":
 			self.createFields()
