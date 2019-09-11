@@ -10,7 +10,9 @@ import time
 
 import cisco
 
-import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+import numpy as np
 
 class Window:
 
@@ -23,13 +25,15 @@ class Window:
 	password = "Passw0rd"
 
 	def graphic(self):
-		graphic = ttk.Notebook(self.tab4)
-		tmp = Frame(graphic)
-		tmp.pack()
-		graphic.add(tmp, text="hui")
-		graphic.place(x = 1300, y = 500)
-		# graphic["bg"] = "red"
-		graphic.pack(expand=1, fill='X')
+
+		# figure 20x1 inches
+		fig = Figure(figsize=(20, 1))
+		t = np.arange(0, 3, 0.01)
+		fig.add_subplot().plot(t, 2 * np.sin(2 * np.pi * t))
+		# place canvas in 4th bookmark
+		canvas = FigureCanvasTkAgg(fig, master=self.tab4) # master ?
+		# canvas.draw()
+		canvas.get_tk_widget().pack(side=LEFT)
 
 
 	def __init__(self, siteId):
