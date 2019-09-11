@@ -96,6 +96,9 @@ class Window:
 		# self.button = Button(self.window, text = "search", command = self.click)
 		# self.button.place(x = 1620, y = 120)
 
+		self.names_presence = ["Total connected", "Average dwell time", "Peak Hour"]
+		self.test_list = []
+
 		#### MAC ADRESS ####
 		self.MACaddress = StringVar()
 		self.detectingControllers = StringVar()
@@ -238,7 +241,7 @@ class Window:
 		# elif(self.comboExample.current() == 1):
 		# 	self.day = "today"
 
-		cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
+		# cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
 
 		
 
@@ -276,6 +279,13 @@ class Window:
 			self.Mac.destroy()
 			self.Ip.destroy()
 			self.Coords.destroy()
+
+			for i in range(3):
+				self.test_list.append(
+                    Label(self.window, text=self.names_presence[i], font=('Times', 24, 'bold'), bd=0, bg = 'blue', fg='#ffffff',
+                          width=18, height=1))
+			for labl in self.test_list:
+				labl.place(x = 100 + self.test_list.index(labl) * 300, y = 100)
 
 			labelTop = Label(self.window, text = "Choose your favourite month")
 			labelTop.place(x = 20, y = 300)
