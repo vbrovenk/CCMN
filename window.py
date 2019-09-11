@@ -10,6 +10,8 @@ import time
 
 import cisco
 
+import matplotlib.pyplot as plt
+
 class Window:
 
 	urlCMX = "https://cisco-cmx.unit.ua"
@@ -19,6 +21,16 @@ class Window:
 	url = "https://cisco-presence.unit.ua"
 	username = "RO"
 	password = "Passw0rd"
+
+	def graphic(self):
+		graphic = ttk.Notebook(self.tab4)
+		tmp = Frame(graphic)
+		tmp.pack()
+		graphic.add(tmp, text="hui")
+		graphic.place(x = 1300, y = 500)
+		# graphic["bg"] = "red"
+		graphic.pack(expand=1, fill='X')
+
 
 	def __init__(self, siteId):
 		self.x = 1965
@@ -304,6 +316,8 @@ class Window:
 
 			print(self.comboExample.current(), self.comboExample.get())
 			self.comboExample.bind("<<ComboboxSelected>>", self.callbackFunc)
+
+			self.graphic()
 
 			# cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
 
