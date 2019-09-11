@@ -16,10 +16,6 @@ from PIL import ImageTk, Image
 
 from window import Window
 
-urlCMX = "https://cisco-cmx.unit.ua"
-usernameCMX = "RO"
-passwordCMX = "just4reading"
-
 def getFloorImage(url, username, password, mapdatajson):
 	mapImages = []
 	try:
@@ -57,19 +53,31 @@ def getFloorImage(url, username, password, mapdatajson):
 				except Exception as e:
 					print(e)
 
+########## INFO #########
+url = "https://cisco-presence.unit.ua"
+username = "RO"
+password = "Passw0rd"
+
+urlCMX = "https://cisco-cmx.unit.ua"
+usernameCMX = "RO"
+passwordCMX = "just4reading"
+
 ########## API'S #########
 sites = "/api/config/v1/sites"
+connected = "/api/presence/v1/connected/count"
 visitors = "/api/presence/v1/visitor/count"
 repeat = "/api/presence/v1/repeatvisitors/count"
 
 def takeSiteId(url, username, password):
 	data = takeRequest(url, sites, username, password)
 	id = data[0]["aesUId"]
+	# print(id)
 	return (id)
 
 
 def takeRequest(url, restAPI, username, password):
 	endpoint = url + restAPI
+	# print("CHECK: " + endpoint)
 	print("Try URL: " + endpoint)
 	data = None
 	try:
@@ -79,13 +87,13 @@ def takeRequest(url, restAPI, username, password):
 		print(e)
 	return (data)
 
-
-
 def takeConnectedDevices(id, url, password, username, mainWindow):
 	devices = connected + mainWindow.day + "?siteId=" + str(id)
 	answer = takeRequest(url, devices, username, password)
+	# print(connected)
 	# print(devices)
 	print(answer)
+	# print("HERE")
 	# return (answer)
 
 def takeAllVisitors(url, password, username, mainWindow):
@@ -112,7 +120,6 @@ def takeCooords(url, password, username):
 	return (location)
 
 
-
 def resizeImgs():
 	width = 1280
 	height = 720
@@ -129,10 +136,6 @@ def resizeImgs():
 	im5 = im1.resize((width, height), Image.ANTIALIAS)
 	im5.save("maps/3rdFloor" + ".jpg")
 
-url = "https://cisco-presence.unit.ua"
-username = "RO"
-password = "Passw0rd"
-
 def createGUI():
 
 
@@ -143,7 +146,7 @@ def createGUI():
 
 	mainWindow.start()
 	takeConnectedDevices(id, url, password, username, mainWindow)
-	# takeConnectedDevices(id, url, password, username, mainWindow)
+	mainWindow.window.mainloop()
 
 def main():
 	###### GUI ######

@@ -96,8 +96,9 @@ class Window:
 		# self.button = Button(self.window, text = "search", command = self.click)
 		# self.button.place(x = 1620, y = 120)
 
-		self.names_presence = ["Total connected", "Average dwell time", "Peak Hour"]
-		self.test_list = []
+		self.names_presence = ["Total Visitors", "Average Dwell Time", "Peak Hour", "Conversion Rate", "Top Device Maker"]
+		self.labels_presence = []
+		self.labels_colors = ["#FF3333", "#FDB800", "#92FD00", "#0064FD", "#D700FE"]
 
 		#### MAC ADRESS ####
 		self.MACaddress = StringVar()
@@ -241,9 +242,11 @@ class Window:
 		# elif(self.comboExample.current() == 1):
 		# 	self.day = "today"
 
-		# cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
+		cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
 
-		
+	def delete_presence():
+		for i in (5):
+			self.labels_presence.destroy()	
 
 	def on_tab_selected(self, event, canvas1, canvas2, canvas3):
 		selected_tab = event.widget.select()
@@ -256,6 +259,7 @@ class Window:
 			self.createFields()
 			self.thread_Floors = {"1st_Floor":True, "2nd_Floor":False, "3rd_Floor":False}
 			thread1.start()
+			self.delete_presence()
 
 		if tab_text == "2nd Floor":
 			self.createFields()
@@ -280,12 +284,12 @@ class Window:
 			self.Ip.destroy()
 			self.Coords.destroy()
 
-			for i in range(3):
-				self.test_list.append(
-                    Label(self.window, text=self.names_presence[i], font=('Times', 24, 'bold'), bd=0, bg = 'blue', fg='#ffffff',
+			for i in range(5):
+				self.labels_presence.append(
+                    Label(self.window, text=self.names_presence[i], font=('Times', 24, 'bold'), bd=0, bg = self.labels_colors[i], fg='#ffffff',
                           width=18, height=1))
-			for labl in self.test_list:
-				labl.place(x = 100 + self.test_list.index(labl) * 300, y = 100)
+			for labl in self.labels_presence:
+				labl.place(x = 100 + self.labels_presence.index(labl) * 300, y = 100)
 
 			labelTop = Label(self.window, text = "Choose your favourite month")
 			labelTop.place(x = 20, y = 300)
