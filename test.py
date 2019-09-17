@@ -87,26 +87,26 @@ def takeRequest(url, restAPI, username, password):
 		print(e)
 	return (data)
 
-def takeConnectedDevices(id, url, password, username, mainWindow):
-	devices = connected + mainWindow.day + "?siteId=" + str(id)
-	answer = takeRequest(url, devices, username, password)
-	# print(connected)
-	# print(devices)
-	print(answer)
-	# print("HERE")
-	# return (answer)
+# def takeConnectedDevices(id, url, password, username, mainWindow):
+# 	devices = connected + mainWindow.day + "?siteId=" + str(id)
+# 	answer = takeRequest(url, devices, username, password)
+# 	# print(connected)
+# 	# print(devices)
+# 	print(answer)
+# 	# print("HERE")
+# 	# return (answer)
 
-def takeAllVisitors(url, password, username, mainWindow):
-	devices = visitors + mainWindow.day + "?siteId=" + str(id)
-	# print(devices)
-	answer = takeRequest(url, devices, username, password)
-	print(answer)
+# def takeAllVisitors(url, password, username, mainWindow):
+# 	devices = visitors + mainWindow.day + "?siteId=" + str(id)
+# 	# print(devices)
+# 	answer = takeRequest(url, devices, username, password)
+# 	print(answer)
 
-def takeRepeatVisitors(url, password, username, mainWindow):
-	devices = repeat + mainWindow.day + "?siteId=" + str(id)
-	# print(devices)
-	answer = takeRequest(url, devices, username, password)
-	print(answer)
+# def takeRepeatVisitors(url, password, username, mainWindow):
+# 	devices = repeat + mainWindow.day + "?siteId=" + str(id)
+# 	# print(devices)
+# 	answer = takeRequest(url, devices, username, password)
+# 	print(answer)
 
 def takeCooords(url, password, username):
 	location = None
@@ -145,7 +145,6 @@ def createGUI():
 	mainWindow = Window(id)
 
 	mainWindow.start()
-	takeConnectedDevices(id, url, password, username, mainWindow)
 	mainWindow.window.mainloop()
 
 def main():

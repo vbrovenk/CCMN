@@ -2,6 +2,7 @@ import requests
 import json
 
 from tkinter import *
+from tkcalendar import *
 from tkinter import ttk
 from PIL import ImageTk, Image
 
@@ -33,6 +34,8 @@ class Window:
 		self.window.geometry(str(self.x) + "x" + str(self.y))
 
 		self.day = "/today"
+		self.start_date = ""
+		self.end_date = ""
 
 		self.style = ttk.Style()
 
@@ -101,6 +104,20 @@ class Window:
 		self.names_presence = ["Total Visitors", "Average Dwell Time", "Peak Hour", "Conversion Rate", "Top Device Maker"]
 		self.labels_presence = []
 		self.labels_colors = ["#FF3333", "#FDB800", "#92FD00", "#0064FD", "#D700FE"]
+
+
+		self.total_visitors = self.totalVisitors()
+		self.dwell = cisco.takeDwellTime(self.siteId, Window.url, Window.password, Window.username, self)
+		self.av_dwell = cisco.takeavDwellTime(self.siteId, Window.url, Window.password, Window.username, self)
+		self.peak_hour = cisco.takePeakHour(self.siteId, Window.url, Window.password, Window.username)
+		# print (self.peak_hour)
+		self.hourly = cisco.takePeakHourVisitors(self.siteId, Window.url, Window.password, Window.username, self)
+		self.hourly = self.hourly[str(self.peak_hour)]
+		# print (self.hourly)
+		self.cliclable_menu_list = [self.total_visitors[0], "", 0 , 0, 0]
+		#### PRESENCE FRAME ####
+
+		# self.info_presence = []
 
 		#### MAC ADRESS ####
 		self.MACaddress = StringVar()
@@ -227,6 +244,14 @@ class Window:
 		self.Coords = Label(self.window, text="Co-ordinates:", font="Times 26", fg='#666699')
 		self.Coords.place(x = 1500, y = 330)
 	
+	def totalVisitors(self):
+		connected = cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
+		all_visitors = cisco.takeAllVisitors(self.siteId, Window.url, Window.password, Window.username, self)
+		unique = all_visitors
+		percentage = round(connected / all_visitors * 100)
+		return [unique, all_visitors, connected, percentage]
+
+
 	def callbackFunc(self, event):
 		if (self.comboExample.current() == 0):
 			self.day = "/today"
@@ -243,7 +268,164 @@ class Window:
 		# elif(self.comboExample.current() == 1):
 		# 	self.day = "today"
 
-		cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
+
+	# def clickable_labels(self, event):
+	# 	if (event.widget["bg"] == "#FF3333"): #checking clicked label according to the background color
+	# 		print ("peak hour")
+	# 	elif (event.widget["text"] == "Average Dwell Time"):
+	# 		print ("peak hour")
+	# 	elif (event.widget["text"] == "Peak Hour"):
+	# 		print ("peak hour")
+	# 	elif (event.widget["text"] == "Conversion Rate"):
+	# 		print ("peak hour")
+	# 	elif (event.widget["text"] == "Top Device Maker"):
+	# 		print ("peak hour")
+	# 	#need to make labels move
+
+
+	def total_visitors_label(self):
+		box = Listbox(self.tab4,
+						width=21,
+						height=4,
+						bg="blue",
+						selectbackground="#5EAA5A",
+						relief=RAISED,
+						font=("Avenir", 18),
+						fg = "white")
+
+		box_info = [	"Unique Visitors " + str(self.total_visitors[1]),
+						"Total Visitors " + str(self.total_visitors[0]),
+						"Total Connected " + str(self.total_visitors[2]),
+						"Percentage " + str(self.total_visitors[3]) + "%"]
+
+		for info in box_info:
+			box.insert(END, info)
+
+		def click(event):
+			box.place(x = 100, y = 150)
+
+		def forget(event):
+			box.place_forget()
+
+		label = Label(self.tab4, text='Total Visitors ' + str(self.total_visitors[0]),
+				relief=RAISED,
+				bg="blue",
+				font=("Times New Roman", 30),
+				fg='white')
+
+		label.bind('<Button-1>', click)
+		label.bind('<Leave>', forget)
+		label.place(x = 100, y = 100)
+
+	def dwell_time_label(self):
+		box = Listbox(self.tab4,
+						width=33,
+						height=5,
+						bg="blue",
+						selectbackground="#5EAA5A",
+						relief=RAISED,
+						font=("Avenir", 18),
+						fg = "white")
+
+		box_info = [	"5-30 mins " + str(self.dwell[0]) + " visitors",
+						"30-60 mins " + str(self.dwell[1]) + " visitors",
+						"1-5 hours " + str(self.dwell[2]) + " visitors",
+						"5-8 hours " + str(self.dwell[3]) + " visitors",
+						"8+ hours " + str(self.dwell[4]) + " visitors"]
+
+		for info in box_info:
+			box.insert(END, info)
+
+		def click(event):
+			box.place(x = 400, y = 150)
+
+		def forget(event):
+			box.place_forget()
+
+		label = Label(self.tab4, text='Average Dwell Time ' + str(self.av_dwell) + " mins",
+				relief=RAISED,
+				bg="blue",
+				font=("Times New Roman", 30),
+				fg='white')
+
+		label.bind('<Button-1>', click)
+		label.bind('<Leave>', forget)
+		label.place(x = 400, y = 100)
+
+	def peak_hour_label(self):
+		box = Listbox(self.tab4,
+						width=19,
+						height=1,
+						bg="blue",
+						selectbackground="#5EAA5A",
+						relief=RAISED,
+						font=("Avenir", 18),
+						fg = "white")
+
+		# box_info = [	"5-30 mins " + str(self.dwell[0]) + " visitors",
+		# 				"30-60 mins " + str(self.dwell[1]) + " visitors",
+		# 				"1-5 hours " + str(self.dwell[2]) + " visitors",
+		# 				"5-8 hours " + str(self.dwell[3]) + " visitors",
+		# 				"8+ hours " + str(self.dwell[4]) + " visitors"]
+
+		# for info in box_info:
+		# 	box.insert(END, info)
+		box.insert(1, "Visitors in peak hour " + str(self.hourly))
+
+		def click(event):
+			box.place(x = 830, y = 150)
+
+		def forget(event):
+			box.place_forget()
+
+		label = Label(self.tab4, text='Peak Hour ' + str(self.peak_hour) + "-" + str(self.peak_hour + 1),
+				relief=RAISED,
+				bg="blue",
+				font=("Times New Roman", 30),
+				fg='white')
+
+		label.bind('<Button-1>', click)
+		label.bind('<Leave>', forget)
+		label.place(x = 830, y = 100)
+
+	def takeStartDate(self):
+		# self.start_date = self.calendar.get_date()
+		tmp = self.calendar.get_date().split("/")
+		# print (tmp)
+		day = tmp[1]
+		month = tmp[0]
+		year = "20" + str(tmp[2])
+		if (len(day) == 1):
+			day = "0" + day
+		if (len(month) == 1):
+			month = "0" + month
+		# print (year, " | ", month, " | ", day)
+		self.start_date = year + "-" + month + "-" + day
+		print ("start = " + self.start_date)
+
+	def takeEndDate(self):
+		tmp = self.calendar.get_date().split("/")
+		# print (tmp)
+		day = tmp[1]
+		month = tmp[0]
+		year = "20" + str(tmp[2])
+		if (len(day) == 1):
+			day = "0" + day
+		if (len(month) == 1):
+			month = "0" + month
+		# print (year, " | ", month, " | ", day)
+		self.end_date = year + "-" + month + "-" + day
+		print ("end = " + self.end_date)
+
+	def create_calendar(self):
+		top = Toplevel(self.window)
+		self.calendar = Calendar(top, font = "Times 14", selectmode = "day", year = 2019, month = 9)
+		self.calendar.pack()
+		from_button = Button(top, text = "Start Date", command = self.takeStartDate)
+		from_button.pack(side = LEFT)
+		to_button = Button(top, text = "End Date", command = self.takeEndDate)
+		to_button.pack(side = RIGHT)
+
 
 	def cleaner(self):
 		for i in range(5):
@@ -262,26 +444,17 @@ class Window:
 		thread1 = Thread(target=self.printDevices, args=(self.canvas1, "1st_Floor",), daemon=True)
 
 		if tab_text == "1st Floor":
-			# self.createFields()
 			self.thread_Floors = {"1st_Floor":True, "2nd_Floor":False, "3rd_Floor":False}
-			# self.cleaner()
 			thread1.start()
 
 		if tab_text == "2nd Floor":
-			# self.createFields()
 			self.thread_Floors = {"1st_Floor":False, "2nd_Floor":True, "3rd_Floor":False}
 			thread2 = Thread(target=self.printDevices, args=(self.canvas2, "2nd_Floor",), daemon=True)
-			# self.cleaner()
 			thread2.start()
-			# print("second floor")
 		if tab_text == "3rd Floor":
-			# self.createFields()
-
 			self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":True}
 			thread3 = Thread(target=self.printDevices, args=(self.canvas3, "3rd_Floor",), daemon=True)
-			# self.cleaner()
 			thread3.start()
-			# print("third floor")
 		if (tab_text == "Presence"):
 			self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
 			self.detector = False
@@ -293,16 +466,22 @@ class Window:
 			self.Ip.destroy()
 			self.Coords.destroy()
 
-			for i in range(5):
-				self.labels_presence.append(
-					Label(self.tab4, text=self.names_presence[i], font=('Times', 24, 'bold'), bd=0, bg = self.labels_colors[i], fg='#ffffff',
-					width=18, height=1))
-				self.labels_presence[i].place(x = 100 + i * 300, y = 100)
-			# for labl in self.labels_presence:
-			# 	labl.place(x = 100 + self.labels_presence.index(labl) * 300, y = 100)
+			self.total_visitors_label()
+			self.dwell_time_label()
+			self.peak_hour_label()
+			# for i in range(5):
+			# 	self.labels_presence.append(
+			# 		Label(self.tab4, text = self.names_presence[i] + " " + str(self.cliclable_menu_list[i]), font = ('Times', 24, 'bold'), bd=0, bg = self.labels_colors[i], fg = '#ffffff',
+			# 		width = 22, height = 1))
+			# 	self.labels_presence[i].place(x = 100 + i * 300, y = 100)
+			# 	self.labels_presence[i].bind("<Button-1>", self.clickable_labels)
+			# 	self.labels_presence[i].bind('<Leave>', self.clickable_menu.)
 
-			self.labelTop = Label(self.window, text = "Choose your favourite month")
+			self.labelTop = Label(self.tab4, text = "Choose your favourite month")
 			self.labelTop.place(x = 20, y = 300)
+
+			calendar_button = Button(self.tab4, text = "Calendar", command = self.create_calendar)
+			calendar_button.place(x = 1600, y = 40)
 
 			self.comboExample = ttk.Combobox(self.tab4, 
 										values=[
@@ -320,7 +499,6 @@ class Window:
 			# print(self.comboExample.current(), self.comboExample.get())
 			self.comboExample.bind("<<ComboboxSelected>>", self.callbackFunc)
 
-			# cisco.takeConnectedDevices(self.siteId, Window.url, Window.password, Window.username, self)
 
 	def start(self):
 		self.tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =self.canvas1, arg2 = self.canvas2, arg3 = self.canvas3: self.on_tab_selected(event, arg1, arg2, arg3))
