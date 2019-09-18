@@ -10,7 +10,6 @@ sites = "/api/config/v1/sites"
 ########## TODAY AND YESTERDAY #########
 connected = "/api/presence/v1/connected/count"
 visitors = "/api/presence/v1/visitor/count"
-repeat = "/api/presence/v1/repeatvisitors/count"
 passerby = "/api/presence/v1/passerby/count"
 dwell = "/api/presence/v1/dwell/count"
 av_dwell = "/api/presence/v1/dwell/average"
@@ -21,6 +20,7 @@ hourly = "/api/presence/v1/visitor/hourly"
 # visitors = "/api/presence/v1/visitor/total"
 # repeat = "/api/presence/v1/repeatvisitors/total"
 # passerby = "/api/presence/v1/passerby/total"
+day = "/today"
 
 # percentage_of_connected_visitors = round(total_connected / total_visitors * 100)
 
@@ -58,11 +58,11 @@ def takeAllVisitors(id, url, password, username, mainWindow):
 	# print(answer)
 	return (answer)
 
-def takeRepeatVisitors(id, url, password, username, mainWindow):
-	devices = repeat + mainWindow.day + "?siteId=" + str(id)
+def takeRepeatVisitors(id, url, password, username, mode):
+	devices = "/api/presence/v1/repeatvisitors/" + mode + day + "?siteId=" + str(id)
 	# print(devices)
 	answer = takeRequest(url, devices, username, password)
-	# print(answer)
+	print(answer)
 	return (answer)
 
 def takeDwellTime(id, url, password, username, mainWindow):

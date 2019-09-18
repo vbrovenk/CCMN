@@ -11,6 +11,10 @@ import time
 
 import cisco
 
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+import numpy as np
+
 class Window:
 
 	urlCMX = "https://cisco-cmx.unit.ua"
@@ -20,6 +24,19 @@ class Window:
 	url = "https://cisco-presence.unit.ua"
 	username = "RO"
 	password = "Passw0rd"
+
+	def graphic(self):
+		# figure 20x1 inches
+		fig = Figure(figsize=(20, 1))
+		t = np.arange(0, 3, 0.01)
+		fig.add_subplot().plot(t, 2 * np.sin(2 * np.pi * t))
+		# place canvas in 4th bookmark
+		canvas = FigureCanvasTkAgg(fig, master=self.tab4) # master ?
+		# canvas.draw()
+		canvas.get_tk_widget().pack(side=LEFT)
+		cisco.takeRepeatVisitors(self.siteId, Window.url, Window.password, Window.username, "hourly")
+		# OSAMOILE TODO: finish graphic
+		
 
 	def __init__(self, siteId):
 		self.x = 1965
@@ -469,6 +486,7 @@ class Window:
 			self.total_visitors_label()
 			self.dwell_time_label()
 			self.peak_hour_label()
+
 			# for i in range(5):
 			# 	self.labels_presence.append(
 			# 		Label(self.tab4, text = self.names_presence[i] + " " + str(self.cliclable_menu_list[i]), font = ('Times', 24, 'bold'), bd=0, bg = self.labels_colors[i], fg = '#ffffff',
@@ -498,6 +516,7 @@ class Window:
 
 			# print(self.comboExample.current(), self.comboExample.get())
 			self.comboExample.bind("<<ComboboxSelected>>", self.callbackFunc)
+			self.graphic()
 
 
 	def start(self):
