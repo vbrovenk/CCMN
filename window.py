@@ -17,13 +17,13 @@ import numpy as np
 
 class Window:
 
-	urlCMX = "https://cisco-cmx.unit.ua"
-	usernameCMX = "RO"
-	passwordCMX = "just4reading"
+	urlCMX = "https://cisco-cmx.unit.ua"   # TODO useless
+	usernameCMX = "RO"                     # TODO useless
+	passwordCMX = "just4reading"           # TODO useless
 
-	url = "https://cisco-presence.unit.ua"
-	username = "RO"
-	password = "Passw0rd"
+	url = "https://cisco-presence.unit.ua" # TODO useless
+	username = "RO"                        # TODO useless
+	password = "Passw0rd"                  # TODO useless
 
 	def graphic(self):
 		# figure 20x1 inches
@@ -36,6 +36,13 @@ class Window:
 		canvas.get_tk_widget().pack(side=LEFT)
 		cisco.takeRepeatVisitors(self.siteId, Window.url, Window.password, Window.username, "hourly")
 		# OSAMOILE TODO: finish graphic
+		# aka: number of repeat visitors over all available ranges
+		# mb dwell time, Sum of Connected Visitor
+
+		# TODO: Forecasting number of visitors (tomorrow)
+
+		# TODO: session duration and the day of the week
+		#       number of connections and the day of the week
 		
 
 	def __init__(self, siteId):
@@ -44,15 +51,15 @@ class Window:
 
 		self.detector = False
 
-		self.siteId = siteId
+		self.siteId = siteId # TODO useless
 
 		self.window = Tk()
 		self.window.title("CCMN")
 		self.window.geometry(str(self.x) + "x" + str(self.y))
 
-		self.day = "/today"
-		self.start_date = ""
-		self.end_date = ""
+		self.day = "/today" # TODO useless
+		self.start_date = "2019-09-17"
+		self.end_date = "2019-09-17"
 
 		self.style = ttk.Style()
 
@@ -134,6 +141,10 @@ class Window:
 		self.cliclable_menu_list = [self.total_visitors[0], "", 0 , 0, 0]
 		#### PRESENCE FRAME ####
 
+		self.frame = Frame(self.tab4, highlightbackground = "green", highlightthickness=2, width=1000, height=110, borderwidth = 2)
+		self.frame.place(x = 100, y = 100)
+		self.frame.pack_propagate(False)
+
 		# self.info_presence = []
 
 		#### MAC ADRESS ####
@@ -160,6 +171,7 @@ class Window:
 		for device in coords:
 			if (self.message.get() == device["macAddress"]):
 				self.MACaddress = device["macAddress"]
+				# TODO: xlogin - get and display
 				self.detectingControllers = device["detectingControllers"]
 				self.floor = device["mapInfo"]["mapHierarchyString"].split('>')[2]
 				self.ssid = device["ssId"]
@@ -244,6 +256,7 @@ class Window:
 					mapCoordinateX *= 0.82
 					mapCoordinateY *= 0.92
 					canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue')
+		# TODO:  "Hi, @xlogin or mac: 00:00:2a:01:00:06 now is on the first floor."
 
 	def createFields(self):
 		self.message = StringVar()
@@ -333,6 +346,7 @@ class Window:
 		label.bind('<Button-1>', click)
 		label.bind('<Leave>', forget)
 		label.place(x = 100, y = 100)
+		# label.pack()
 
 	def dwell_time_label(self):
 		box = Listbox(self.tab4,
@@ -406,42 +420,43 @@ class Window:
 		label.place(x = 830, y = 100)
 
 	def takeStartDate(self):
-		# self.start_date = self.calendar.get_date()
-		tmp = self.calendar.get_date().split("/")
-		# print (tmp)
-		day = tmp[1]
-		month = tmp[0]
-		year = "20" + str(tmp[2])
-		if (len(day) == 1):
-			day = "0" + day
-		if (len(month) == 1):
-			month = "0" + month
-		# print (year, " | ", month, " | ", day)
-		self.start_date = year + "-" + month + "-" + day
+		self.start_date = self.calendar.get_date()
+		# tmp = self.calendar.get_date().split("/")
+		# # print (tmp)
+		# day = tmp[1]
+		# month = tmp[0]
+		# year = "20" + str(tmp[2])
+		# if (len(day) == 1):
+		# 	day = "0" + day
+		# if (len(month) == 1):
+		# 	month = "0" + month
+		# # print (year, " | ", month, " | ", day)
+		# self.start_date = year + "-" + month + "-" + day
 		print ("start = " + self.start_date)
 
 	def takeEndDate(self):
-		tmp = self.calendar.get_date().split("/")
-		# print (tmp)
-		day = tmp[1]
-		month = tmp[0]
-		year = "20" + str(tmp[2])
-		if (len(day) == 1):
-			day = "0" + day
-		if (len(month) == 1):
-			month = "0" + month
-		# print (year, " | ", month, " | ", day)
-		self.end_date = year + "-" + month + "-" + day
+		self.end_date = self.calendar.get_date()
+		# # print (tmp)
+		# day = tmp[1]
+		# month = tmp[0]
+		# year = "20" + str(tmp[2])
+		# if (len(day) == 1):
+		# 	day = "0" + day
+		# if (len(month) == 1):
+		# 	month = "0" + month
+		# # print (year, " | ", month, " | ", day)
+		# self.end_date = year + "-" + month + "-" + day
 		print ("end = " + self.end_date)
 
 	def create_calendar(self):
 		top = Toplevel(self.window)
-		self.calendar = Calendar(top, font = "Times 14", selectmode = "day", year = 2019, month = 9)
+		self.calendar = Calendar(top, font = "Times 14", selectbackground = "blue",  selectmode = "day", year = 2019, month = 9, date_pattern = "y-mm-dd")
 		self.calendar.pack()
 		from_button = Button(top, text = "Start Date", command = self.takeStartDate)
 		from_button.pack(side = LEFT)
 		to_button = Button(top, text = "End Date", command = self.takeEndDate)
 		to_button.pack(side = RIGHT)
+		# TODO SBASNAKA: invalid data (unclickable, alert box, etc.)
 
 
 	def cleaner(self):
@@ -486,6 +501,9 @@ class Window:
 			self.total_visitors_label()
 			self.dwell_time_label()
 			self.peak_hour_label()
+			# TODO SBASNAKA: conversion rate = Floor congestion
+
+			cisco.testsumvisitors(self.siteId, Window.url, Window.password, Window.username, self)
 
 			# for i in range(5):
 			# 	self.labels_presence.append(
@@ -500,6 +518,9 @@ class Window:
 
 			calendar_button = Button(self.tab4, text = "Calendar", command = self.create_calendar)
 			calendar_button.place(x = 1600, y = 40)
+
+			# check = Button(self.tab4, text = "check", command = cisco.testsumvisitors(self.siteId, Window.url, Window.password, Window.username, self))
+			# check.place(x = 1500, y = 100)
 
 			self.comboExample = ttk.Combobox(self.tab4, 
 										values=[

@@ -5,9 +5,12 @@ url = "https://cisco-presence.unit.ua"
 username = "RO"
 password = "Passw0rd"
 
+# https://cisco-presence.unit.ua/api/presence/v1/connected/total?siteId=1513804707441&startDate=2019-09-23&endDate=2019-09-27
+
 ########## API'S #########
 sites = "/api/config/v1/sites"
 ########## TODAY AND YESTERDAY #########
+test = "/api/presence/v1/connected/total"
 connected = "/api/presence/v1/connected/count"
 visitors = "/api/presence/v1/visitor/count"
 passerby = "/api/presence/v1/passerby/count"
@@ -35,6 +38,10 @@ def takeRequest(url, restAPI, username, password):
 		print(e)
 	return (data)
 
+def takeEverything():
+	# TODO: all requests
+	# 0 self:)
+	return 0
 
 # def takeConnectedDevices(id, url, password, username, mainWindow):
 # 	devices = visitors + mainWindow.day + "?siteId=" + str(id)
@@ -92,3 +99,12 @@ def takePeakHourVisitors(id, url, password, usernamem, mainWindow):
 	answer = takeRequest(url, devices, username, password)
 	# print(answer)
 	return (answer)
+
+# "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+
+def testsumvisitors(id, url, password, usernamem, mainWindow):
+	devices = test + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+	# print(devices)
+	answer = takeRequest(url, devices, username, password)
+	print(answer)
+	# return (answer)
