@@ -7,6 +7,8 @@ from tkinter import ttk
 from PIL import ImageTk, Image
 
 from threading import Thread
+from datetime import date
+
 import time
 
 import cisco
@@ -58,8 +60,8 @@ class Window:
 		self.window.geometry(str(self.x) + "x" + str(self.y))
 
 		self.day = "/today" # TODO useless
-		self.start_date = "2019-09-19"
-		self.end_date = "2019-09-19"
+		# self.start_date = "2019-09-21"
+		# self.end_date = "2019-09-21"
 
 		self.style = ttk.Style()
 
@@ -115,34 +117,39 @@ class Window:
 		self.image3 = ImageTk.PhotoImage(Image.open("maps/3rdFloor.jpg"))
 		self.canvas3.create_image(0, 0, image = self.image3, anchor = 'nw')
 
-		# # Presence
 
-		# self.message = StringVar()
-		# self.label = Label(self.window, text = "Input Mac Adress")
-		# self.label.place(x = 1300, y = 124)
-		# self.entry = Entry(self.window, textvariable = self.message)
-		# self.entry.place(x = 1420, y = 120)
-		# self.button = Button(self.window, text = "search", command = self.click)
-		# self.button.place(x = 1620, y = 120)
-
-		self.names_presence = ["Total Visitors", "Average Dwell Time", "Peak Hour", "Conversion Rate", "Top Device Maker"]
-		self.labels_presence = []
-		self.labels_colors = ["#FF3333", "#FDB800", "#92FD00", "#0064FD", "#D700FE"]
-
-
-		self.peak_hour = cisco.takePeakHour(self.siteId, Window.url, Window.password, Window.username)
-		# print (self.peak_hour)
-		self.hourly = cisco.takePeakHourVisitors(self.siteId, Window.url, Window.password, Window.username, self)
-		self.hourly = self.hourly[str(self.peak_hour)]
-		# print (self.hourly)
 		#### PRESENCE FRAME ####
+
+		calendar_button = Button(self.tab4, text = "Choose Date Range", command = self.create_calendar)
+		calendar_button.place(x = 1600, y = 40)
+
+		self.startdate_entry = Entry(self.tab4)
+		self.startdate_entry.place(x = 1600, y = 65)
+		self.startdate_entry.insert(0, "2019-09-21")
+
+		start_label = Label(self.tab4, text = "Start Date")
+		start_label.place(x = 1525, y = 68)
+		
+		self.enddate_entry = Entry(self.tab4)
+		self.enddate_entry.place(x = 1600, y = 95)
+		self.enddate_entry.insert(0, "2019-09-21")
+
+		end_label = Label(self.tab4, text = "End Date")
+		end_label.place(x = 1525, y = 98)
+
+		tmp = Button(self.tab4, text = "Change", command = self.change)
+		tmp.place(x = 1600, y = 130)
+
 
 		self.frame = Frame(self.tab4, highlightbackground = "green", highlightthickness=2, width=1000, height=110, borderwidth = 2)
 		self.frame.place(x = 100, y = 100)
+
+		self.visitors_label = Label(self.frame, text = "")
+		self.dwelltime_label = Label(self.frame, text = "")
+		self.peakhour_label = Label(self.frame, text = "")
+		self.conversion_label = Label(self.frame, text = "")
+
 		# self.frame.pack_propagate(False)
-
-		# self.info_presence = []
-
 		#### MAC ADRESS ####
 		self.MACaddress = StringVar()
 		self.detectingControllers = StringVar()
@@ -281,11 +288,11 @@ class Window:
 		average_dwell = cisco.takeDwellTime(self.siteId, Window.url, Window.password, Window.username, self, "average_dwell")
 		return [list(dwell.values()), round(average_dwell)]
 
-	def takePeakHour(self):
+	def peakHour(self):
 		peakhour = None
 		peakhour_visitors = None
 		peakday = None
-		if self.start_date != self.end_date:
+		if self.startdate_entry.get() != self.enddate_entry.get():
 			insights = cisco.takeInsights(self.siteId, Window.url, Window.password, Window.username, self, "month_peakhour")
 			peakhour = insights["monthStats"]["peakHour"]
 			peakhour_visitors = insights["monthStats"]["peakHourCount"]
@@ -298,11 +305,18 @@ class Window:
 			peakhour_visitors = info[1]
 		return [peakhour, peakhour_visitors, peakday]
 
+	def conversionRate(self):
+		total = cisco.takeTotalVisitors(self.siteId, Window.url, Window.password, Window.username, self, "visitors")
+		passerby = cisco.takeTotalVisitors(self.siteId, Window.url, Window.password, Window.username, self, "passerby")
+		conversion_rate = round(total * 100 / (total + passerby))
+		# print([conversion_rate, total, passerby])
+		return [conversion_rate, total, passerby]
+
 	def total_visitors_label(self):
 		total_visitors = self.totalVisitors()
 
 		box = Listbox(self.frame,
-						width=20,
+						width=21,
 						height=4,
 						bg="blue",
 						selectbackground="#5EAA5A",
@@ -324,15 +338,15 @@ class Window:
 		def forget(event):
 			box.grid_forget()
 
-		label = Label(self.frame, text='Total Visitors ' + str(total_visitors[1]),
+		self.visitors_label = Label(self.frame, text='Total Visitors ' + str(total_visitors[1]),
 				relief=RAISED,
 				bg="blue",
 				font=("Times New Roman", 30),
 				fg='white')
 
-		label.bind('<Button-1>', click)
-		label.bind('<Leave>', forget)
-		label.grid(row = 0, column = 0, padx = (0, 10))
+		self.visitors_label.bind('<Button-1>', click)
+		self.visitors_label.bind('<Leave>', forget)
+		self.visitors_label.grid(row = 0, column = 0, padx = (0, 10))
 
 	def dwell_time_label(self):
 		dwell = self.dwellTime()
@@ -361,18 +375,18 @@ class Window:
 		def forget(event):
 			box.grid_forget()
 
-		label = Label(self.frame, text='Average Dwell Time ' + str(dwell[1]) + " mins",
+		self.dwelltime_label = Label(self.frame, text='Average Dwell Time ' + str(dwell[1]) + " mins",
 				relief=RAISED,
 				bg="blue",
 				font=("Times New Roman", 30),
 				fg='white')
 
-		label.bind('<Button-1>', click)
-		label.bind('<Leave>', forget)
-		label.grid(row = 0, column = 1, padx = (0, 10))
+		self.dwelltime_label.bind('<Button-1>', click)
+		self.dwelltime_label.bind('<Leave>', forget)
+		self.dwelltime_label.grid(row = 0, column = 1, padx = (0, 10))
 
 	def peak_hour_label(self):
-		peakhour = self.takePeakHour()
+		peakhour = self.peakHour()
 		box = Listbox(self.frame,
 						width=19,
 						height=1,
@@ -382,14 +396,6 @@ class Window:
 						font=("Avenir", 18),
 						fg = "white")
 
-		# box_info = [	"5-30 mins " + str(self.dwell[0]) + " visitors",
-		# 				"30-60 mins " + str(self.dwell[1]) + " visitors",
-		# 				"1-5 hours " + str(self.dwell[2]) + " visitors",
-		# 				"5-8 hours " + str(self.dwell[3]) + " visitors",
-		# 				"8+ hours " + str(self.dwell[4]) + " visitors"]
-
-		# for info in box_info:
-		# 	box.insert(END, info)
 		box.insert(1, "Visitors in peak hour " + str(peakhour[1]))
 		if (peakhour[2] != None):
 			box["height"] = 2
@@ -403,35 +409,34 @@ class Window:
 
 		text = "Peak Hour " + str(peakhour[0]) + "-" + str(int(peakhour[0]) + 1)
 
-		label = Label(self.frame, text = text,
+		self.peakhour_label = Label(self.frame, text = text,
 				relief=RAISED,
 				bg="blue",
 				font=("Times New Roman", 30),
 				fg='white')
 
-		label.bind('<Button-1>', click)
-		label.bind('<Leave>', forget)
-		label.grid(row = 0, column = 3, padx = (0, 10))
+		self.peakhour_label.bind('<Button-1>', click)
+		self.peakhour_label.bind('<Leave>', forget)
+		self.peakhour_label.grid(row = 0, column = 3, padx = (0, 10))
 
 	def conversion_rate_label(self):
+		conversion_rate = self.conversionRate()
+
 		box = Listbox(self.frame,
-						width=19,
-						height=1,
+						width=24,
+						height=3,
 						bg="blue",
 						selectbackground="#5EAA5A",
 						relief=RAISED,
 						font=("Avenir", 18),
 						fg = "white")
 
-		# box_info = [	"5-30 mins " + str(self.dwell[0]) + " visitors",
-		# 				"30-60 mins " + str(self.dwell[1]) + " visitors",
-		# 				"1-5 hours " + str(self.dwell[2]) + " visitors",
-		# 				"5-8 hours " + str(self.dwell[3]) + " visitors",
-		# 				"8+ hours " + str(self.dwell[4]) + " visitors"]
+		box_info = [	"Conversion Rate " + str(conversion_rate[0]) + "%",
+						"Total Visitors " + str(conversion_rate[1]),
+						"Total Passerby " + str(conversion_rate[2])]
 
-		# for info in box_info:
-		# 	box.insert(END, info)
-		box.insert(1, "Conversion Rate " + str(self.hourly))
+		for info in box_info:
+			box.insert(END, info)
 
 		def click(event):
 			box.grid(row = 1, column = 4)
@@ -439,18 +444,20 @@ class Window:
 		def forget(event):
 			box.grid_forget()
 
-		label = Label(self.frame, text='Conversion Rate ' + str(self.peak_hour) + "-" + str(self.peak_hour + 1),
+		self.conversion_label = Label(self.frame, text='Conversion Rate ' + str(conversion_rate[0]) + "%",
 				relief=RAISED,
 				bg="blue",
 				font=("Times New Roman", 30),
 				fg='white')
 
-		label.bind('<Button-1>', click)
-		label.bind('<Leave>', forget)
-		label.grid(row = 0, column = 4)
+		self.conversion_label.bind('<Button-1>', click)
+		self.conversion_label.bind('<Leave>', forget)
+		self.conversion_label.grid(row = 0, column = 4)
 
 	def takeStartDate(self):
-		self.start_date = self.calendar.get_date()
+		# self.start_date = self.calendar.get_date()
+		self.startdate_entry.delete(0, END)
+		self.startdate_entry.insert(0, self.calendar.get_date())
 		# tmp = self.calendar.get_date().split("/")
 		# # print (tmp)
 		# day = tmp[1]
@@ -462,10 +469,12 @@ class Window:
 		# 	month = "0" + month
 		# # print (year, " | ", month, " | ", day)
 		# self.start_date = year + "-" + month + "-" + day
-		print ("start = " + self.start_date)
+		# print ("start = " + self.start_date)
 
 	def takeEndDate(self):
-		self.end_date = self.calendar.get_date()
+		self.enddate_entry.delete(0, END)
+		self.enddate_entry.insert(0, self.calendar.get_date())
+		# self.end_date = self.calendar.get_date()
 		# # print (tmp)
 		# day = tmp[1]
 		# month = tmp[0]
@@ -476,11 +485,11 @@ class Window:
 		# 	month = "0" + month
 		# # print (year, " | ", month, " | ", day)
 		# self.end_date = year + "-" + month + "-" + day
-		print ("end = " + self.end_date)
+		# print ("end = " + self.end_date)
 
 	def create_calendar(self):
 		top = Toplevel(self.window)
-		self.calendar = Calendar(top, font = "Times 14", selectbackground = "blue",  selectmode = "day", year = 2019, month = 9, date_pattern = "y-mm-dd")
+		self.calendar = Calendar(top, font = "Times 14", selectbackground = "blue",  selectmode = "day", year = 2019, month = 9, date_pattern = "y-mm-dd", maxdate = date.today())
 		self.calendar.pack()
 		from_button = Button(top, text = "Start Date", command = self.takeStartDate)
 		from_button.pack(side = LEFT)
@@ -488,14 +497,12 @@ class Window:
 		to_button.pack(side = RIGHT)
 		# TODO SBASNAKA: invalid data (unclickable, alert box, etc.)
 
-
-	# def cleaner(self):
-	# 	for i in range(5):
-	# 		self.labels_presence[i].destroy()
-	# 	self.labelTop.destroy()
-	# 	self.comboExample.destroy()
-
 	def change(self):
+		self.visitors_label.destroy()
+		self.dwelltime_label.destroy()
+		self.peakhour_label.destroy()
+		self.conversion_label.destroy()
+
 		self.total_visitors_label()
 		self.dwell_time_label()
 		self.peak_hour_label()
@@ -535,30 +542,8 @@ class Window:
 			self.Coords.destroy()
 
 			self.change()
-			# self.total_visitors_label()
-			# self.dwell_time_label()
-			# self.peak_hour_label()
-			# self.conversion_rate_label()
 			# TODO SBASNAKA: conversion rate = Floor congestion
 
-			# cisco.testsumvisitors(self.siteId, Window.url, Window.password, Window.username, self)
-
-			# for i in range(5):
-			# 	self.labels_presence.append(
-			# 		Label(self.tab4, text = self.names_presence[i] + " " + str(self.cliclable_menu_list[i]), font = ('Times', 24, 'bold'), bd=0, bg = self.labels_colors[i], fg = '#ffffff',
-			# 		width = 22, height = 1))
-			# 	self.labels_presence[i].place(x = 100 + i * 300, y = 100)
-			# 	self.labels_presence[i].bind("<Button-1>", self.clickable_labels)
-			# 	self.labels_presence[i].bind('<Leave>', self.clickable_menu.)
-
-			# self.labelTop = Label(self.tab4, text = "Choose your favourite month")
-			# self.labelTop.place(x = 20, y = 300)
-
-			calendar_button = Button(self.tab4, text = "Choose Date Range", command = self.create_calendar)
-			calendar_button.place(x = 1600, y = 40)
-
-			tmp = Button(self.tab4, text = "TMP", command = self.change)
-			tmp.place(x = 1600, y = 100)
 
 			# check = Button(self.tab4, text = "check", command = cisco.testsumvisitors(self.siteId, Window.url, Window.password, Window.username, self))
 			# check.place(x = 1500, y = 100)

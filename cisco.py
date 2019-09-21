@@ -11,7 +11,6 @@ password = "Passw0rd"
 sites = "/api/config/v1/sites"
 ########## TODAY AND YESTERDAY #########
 connected = "/api/presence/v1/connected/count"
-passerby = "/api/presence/v1/passerby/count"
 peak_hour = "/api/presence/v1/visitor/today/peakhour"
 ########## 3DAYS AND 7DAYS #########
 # connected = "/api/presence/v1/connected/total"
@@ -39,20 +38,22 @@ def takeRequest(url, restAPI, username, password):
 test = "/api/presence/v1/connected/total"
 visitors = "/api/presence/v1/visitor/total"
 unique = "/api/presence/v1/visitor/count"
+passerby = "/api/presence/v1/passerby/total"
 
 def takeTotalVisitors(id, url, password, usernamem, mainWindow, mode):
 	if (mode == "connected"):
-		devices = test + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+		devices = test + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
 	elif (mode == "visitors"):
-		devices = visitors + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+		devices = visitors + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
+	elif (mode == "passerby"):
+		devices = passerby + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
 	else:
-		devices = unique + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+		devices = unique + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
 	answer = takeRequest(url, devices, username, password)
 	# print (answer)
 	return answer
 
 ########## OVER ANY DATE RANGE #########
-
 
 
 ########## ALL INFO ABOUT DWELL TIME #########
@@ -62,9 +63,9 @@ average_dwell = "/api/presence/v1/dwell/average"
 
 def takeDwellTime(id, url, password, usernamem, mainWindow, mode):
 	if (mode == "dwell"):
-		devices = dwell + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+		devices = dwell + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
 	elif (mode == "average_dwell"):
-		devices = average_dwell + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+		devices = average_dwell + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
 	answer = takeRequest(url, devices, username, password)
 	# print (answer)
 	return answer
@@ -80,9 +81,9 @@ hourly = "/api/presence/v1/visitor/hourly"
 
 def takeInsights(id, url, password, usernamem, mainWindow, mode):
 	if (mode == "month_peakhour"):
-		devices = insights + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
-	elif (mainWindow.start_date == mainWindow.end_date and mode == "day_peakhour"):
-		devices = hourly + "/" + "?siteId=" + str(id) + "&date=" + mainWindow.start_date
+		devices = insights + "?siteId=" + str(id) + "&startDate=" +  mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
+	elif (mainWindow.startdate_entry.get() == mainWindow.enddate_entry.get() and mode == "day_peakhour"):
+		devices = hourly + "/" + "?siteId=" + str(id) + "&date=" +  mainWindow.startdate_entry.get()
 	# else:
 	# 	devices = hourly + "?siteId=" + str(id) + "&date=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
 	answer = takeRequest(url, devices, username, password)
