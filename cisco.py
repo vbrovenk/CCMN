@@ -10,14 +10,9 @@ password = "Passw0rd"
 ########## API'S #########
 sites = "/api/config/v1/sites"
 ########## TODAY AND YESTERDAY #########
-test = "/api/presence/v1/connected/total"
 connected = "/api/presence/v1/connected/count"
-visitors = "/api/presence/v1/visitor/count"
 passerby = "/api/presence/v1/passerby/count"
-dwell = "/api/presence/v1/dwell/count"
-av_dwell = "/api/presence/v1/dwell/average"
 peak_hour = "/api/presence/v1/visitor/today/peakhour"
-hourly = "/api/presence/v1/visitor/hourly"
 ########## 3DAYS AND 7DAYS #########
 # connected = "/api/presence/v1/connected/total"
 # visitors = "/api/presence/v1/visitor/total"
@@ -33,15 +28,67 @@ def takeRequest(url, restAPI, username, password):
 	data = None
 	try:
 		returnData = requests.request("GET", endpoint, auth=(username, password), verify=False)
+		# print(json.dumps(returnData, indent = 5))
 		data = json.loads(returnData.text)
 	except Exception as e:
 		print(e)
 	return (data)
 
-def takeEverything():
-	# TODO: all requests
-	# 0 self:)
-	return 0
+########## ALL INFO ABOUT VISITORS #########
+
+test = "/api/presence/v1/connected/total"
+visitors = "/api/presence/v1/visitor/total"
+unique = "/api/presence/v1/visitor/count"
+
+def takeTotalVisitors(id, url, password, usernamem, mainWindow, mode):
+	if (mode == "connected"):
+		devices = test + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+	elif (mode == "visitors"):
+		devices = visitors + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+	else:
+		devices = unique + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+	answer = takeRequest(url, devices, username, password)
+	# print (answer)
+	return answer
+
+########## OVER ANY DATE RANGE #########
+
+
+
+########## ALL INFO ABOUT DWELL TIME #########
+
+dwell = "/api/presence/v1/dwell/count"
+average_dwell = "/api/presence/v1/dwell/average"
+
+def takeDwellTime(id, url, password, usernamem, mainWindow, mode):
+	if (mode == "dwell"):
+		devices = dwell + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+	elif (mode == "average_dwell"):
+		devices = average_dwell + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+	answer = takeRequest(url, devices, username, password)
+	# print (answer)
+	return answer
+
+########## OVER ANY DATE RANGE #########
+
+##monthstats peakDay
+
+########## ALL INFO ABOUT PEAK TIME #########
+
+insights = "/api/presence/v1/insights"
+hourly = "/api/presence/v1/visitor/hourly"
+
+def takeInsights(id, url, password, usernamem, mainWindow, mode):
+	if (mode == "month_peakhour"):
+		devices = insights + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+	elif (mainWindow.start_date == mainWindow.end_date and mode == "day_peakhour"):
+		devices = hourly + "/" + "?siteId=" + str(id) + "&date=" + mainWindow.start_date
+	# else:
+	# 	devices = hourly + "?siteId=" + str(id) + "&date=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
+	answer = takeRequest(url, devices, username, password)
+	return answer
+
+########## OVER ANY DATE RANGE #########
 
 # def takeConnectedDevices(id, url, password, username, mainWindow):
 # 	devices = visitors + mainWindow.day + "?siteId=" + str(id)
@@ -69,22 +116,22 @@ def takeRepeatVisitors(id, url, password, username, mode):
 	devices = "/api/presence/v1/repeatvisitors/" + mode + day + "?siteId=" + str(id)
 	# print(devices)
 	answer = takeRequest(url, devices, username, password)
-	print(answer)
+	# print(answer)
 	return (answer)
 
-def takeDwellTime(id, url, password, username, mainWindow):
-	devices = dwell + mainWindow.day + "?siteId=" + str(id)
-	# print(devices)
-	answer = takeRequest(url, devices, username, password)
-	# print(answer)
-	return (list(answer.values()))
+# def takeDwellTime(id, url, password, username, mainWindow):
+# 	devices = dwell + mainWindow.day + "?siteId=" + str(id)
+# 	# print(devices)
+# 	answer = takeRequest(url, devices, username, password)
+# 	# print(answer)
+# 	return (list(answer.values()))
 
-def takeavDwellTime(id, url, password, username, mainWindow):
-	devices = av_dwell + mainWindow.day + "?siteId=" + str(id)
-	# print(devices)
-	answer = takeRequest(url, devices, username, password)
-	# print(answer)
-	return (round(answer))
+# def takeavDwellTime(id, url, password, username, mainWindow):
+# 	devices = av_dwell + mainWindow.day + "?siteId=" + str(id)
+# 	# print(devices)
+# 	answer = takeRequest(url, devices, username, password)
+# 	# print(answer)
+# 	return (round(answer))
 
 def takePeakHour(id, url, password, username):
 	devices = peak_hour + "?siteId=" + str(id)
