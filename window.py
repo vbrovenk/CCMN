@@ -26,15 +26,27 @@ class Window:
 	password = "Passw0rd"                  # TODO useless
 
 	def graphic(self):
-		# figure 20x1 inches
-		fig = Figure(figsize=(20, 1))
-		t = np.arange(0, 3, 0.01)
-		fig.add_subplot().plot(t, 2 * np.sin(2 * np.pi * t))
-		# place canvas in 4th bookmark
-		canvas = FigureCanvasTkAgg(fig, master=self.tab4) # master ?
-		# canvas.draw()
-		canvas.get_tk_widget().pack(side=LEFT)
-		cisco.takeRepeatVisitors(self.siteId, Window.url, Window.password, Window.username, "hourly")
+		fig = Figure(figsize=(10, 5)) # figure 20x1 inches
+		hourly = cisco.takeRepeatVisitors(self.siteId, Window.url, Window.password, Window.username, "hourly")
+		print(hourly)
+		hours = list(hourly.keys())
+
+		daily = [hourly.get(hour).get('DAILY') for hour in hours]			# list of DAILY values for every hour
+		weekly = [hourly.get(hour).get('WEEKLY') for hour in hours]			# list of WEEKLY values for every hour
+		occasional = [hourly.get(hour).get('OCCASIONAL') for hour in hours]	# list of OCCASIONAL values for every hour
+		first_time = [hourly.get(hour).get('FIRST_TIME') for hour in hours]	# list of FIRST_TIME values for every hour
+		yesterday = [hourly.get(hour).get('YESTERDAY') for hour in hours]	# list of YESTERDAY values for every hour
+
+		xaxis = np.array(hours, dtype=np.float32) # put bars side to side
+		fig.add_subplot().bar(xaxis - 0.3, daily, width=0.15, label='DAILY')
+		fig.add_subplot().bar(xaxis - 0.15, weekly, width=0.15, label='WEEKLY')
+		fig.add_subplot().bar(xaxis, occasional, width=0.15, label='OCCASIONAL')
+		fig.add_subplot().bar(xaxis + 0.15, first_time, width=0.15, label='FIRST_TIME')
+		fig.add_subplot().bar(xaxis + 0.3, yesterday, width=0.15, label='YESTERDAY')
+
+		fig.legend(loc='upper right')
+		canvas = FigureCanvasTkAgg(fig, master=self.tab4) # TODO: master ? # place canvas in 4th bookmark
+		canvas.get_tk_widget().place(x=50, y=250)
 		# OSAMOILE TODO: finish graphic
 		# aka: number of repeat visitors over all available ranges
 		# mb dwell time, Sum of Connected Visitor
