@@ -20,6 +20,7 @@ def getFloorImage(url, username, password, mapdatajson):
 	mapImages = []
 	try:
 		os.mkdir("./maps")
+		# TODO: remove /maps from git
 	except OSError:
 		print("Creation of the directory is failed")
 	# print(mapdatajson)
@@ -124,6 +125,7 @@ def resizeImgs():
 	width = 1280
 	height = 720
 
+	# TODO: no hardcode, connect with imgName
 	im1 = Image.open("maps/domain_4_1511041548007.png")
 	im5 = im1.resize((width, height), Image.ANTIALIAS)
 	im5.save("maps/1stFloor" + ".jpg")
