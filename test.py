@@ -79,7 +79,7 @@ def takeSiteId(url, username, password):
 def takeRequest(url, restAPI, username, password):
 	endpoint = url + restAPI
 	# print("CHECK: " + endpoint)
-	print("Try URL: " + endpoint)
+	# print("Try URL: " + endpoint)
 	data = None
 	try:
 		returnData = requests.request("GET", endpoint, auth=(username, password), verify=False)
@@ -151,6 +151,7 @@ def createGUI():
 
 def main():
 	###### GUI ######
+	urllib3.disable_warnings()
 	createGUI()
 
 if __name__ == "__main__":

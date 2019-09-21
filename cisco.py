@@ -23,7 +23,7 @@ day = "/today"
 
 def takeRequest(url, restAPI, username, password):
 	endpoint = url + restAPI
-	print("Try URL: " + endpoint)
+	# print("Try URL: " + endpoint)
 	data = None
 	try:
 		returnData = requests.request("GET", endpoint, auth=(username, password), verify=False)
