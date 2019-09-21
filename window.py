@@ -10,7 +10,6 @@ from threading import Thread
 from datetime import date
 
 import time
-
 import cisco
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -64,7 +63,6 @@ class Window:
 		self.y = 897
 
 		self.detector = False
-
 		self.siteId = siteId # TODO useless
 
 		self.window = Tk()
@@ -181,7 +179,7 @@ class Window:
 
 	def give_info(self):
 		coords = self.takeCooords(Window.urlCMX, Window.passwordCMX, Window.usernameCMX)
-		print(json.dumps(coords, indent=5))
+		# print(json.dumps(coords, indent=5))
 		for device in coords:
 			if (self.message.get() == device["macAddress"]):
 				self.MACaddress = device["macAddress"]
@@ -235,7 +233,7 @@ class Window:
 
 	def takeRequest(self, url, restAPI, username, password):
 		endpoint = url + restAPI
-		print("Try URL: " + endpoint)
+		# print("Try URL: " + endpoint)
 		data = None
 		try:
 			returnData = requests.request("GET", endpoint, auth=(username, password), verify=False)
@@ -248,29 +246,44 @@ class Window:
 		location = None
 		try:
 			location = self.takeRequest(url, "/api/location/v2/clients", username, password)
-			print("got data")
+			# print("got data")
 			# print(json.dumps(location, indent = 5))
 
 		except Exception as e:
 			print(e)
 		return (location)
 
+	# def diff(self, first, second):
+	# 	return 
 
 	def printDevices(self, canvas, needFloor):
+		previous_info = []
 		while True:
 			if(self.thread_Floors[needFloor] == False):
-				print("END: " + needFloor)
+				# print("END: " + needFloor)
 				break
-			coords = self.takeCooords(Window.urlCMX, Window.passwordCMX, Window.usernameCMX)
+
+			info = self.takeCooords(Window.urlCMX, Window.passwordCMX, Window.usernameCMX)
+			mac = [i["macAddress"] for i in info]
 			time.sleep(1)
-			for device in coords:
+			for device in info:
 				if (needFloor in device["mapInfo"]["mapHierarchyString"]):
 					mapCoordinateX = device["mapCoordinate"]["x"]
 					mapCoordinateY = device["mapCoordinate"]["y"]
 					mapCoordinateX *= 0.82
 					mapCoordinateY *= 0.92
 					canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue')
-		# TODO:  "Hi, @xlogin or mac: 00:00:2a:01:00:06 now is on the first floor."
+			if len(previous_info) > 0:
+				previous_info = [i["macAddress"] for i in previous_info]
+				difference = [item for item in mac if item not in previous_info]
+				for item in difference:
+					index = mac.index(item)
+					floor = info[index]["mapInfo"]["mapHierarchyString"].split('>')[2]
+					xlogin = info[index]["userName"]
+					if (xlogin == ""):
+						xlogin = "unknown"
+					print ("Hi, @" + xlogin + " or mac:" + str(item) +  " now is on the " + floor)
+			previous_info = info
 
 	def createFields(self):
 		self.message = StringVar()
@@ -507,7 +520,6 @@ class Window:
 		from_button.pack(side = LEFT)
 		to_button = Button(top, text = "End Date", command = self.takeEndDate)
 		to_button.pack(side = RIGHT)
-		# TODO SBASNAKA: invalid data (unclickable, alert box, etc.)
 
 	def change(self):
 		self.visitors_label.destroy()
