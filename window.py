@@ -15,6 +15,7 @@ import cisco
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Window:
 
@@ -27,40 +28,37 @@ class Window:
 	password = "Passw0rd"
 
 	def graphic(self):
-		fig = Figure(figsize=(10, 5)) # figure 20x1 inches
-		hourly = cisco.takeRepeatVisitors(self.siteId, Window.url, Window.password, Window.username, "hourly")
-		# print(hourly)
-		hours = list(hourly.keys())
 
-		daily = [hourly.get(hour).get('DAILY') for hour in hours]			# list of DAILY values for every hour
-		weekly = [hourly.get(hour).get('WEEKLY') for hour in hours]			# list of WEEKLY values for every hour
-		occasional = [hourly.get(hour).get('OCCASIONAL') for hour in hours]	# list of OCCASIONAL values for every hour
-		first_time = [hourly.get(hour).get('FIRST_TIME') for hour in hours]	# list of FIRST_TIME values for every hour
-		yesterday = [hourly.get(hour).get('YESTERDAY') for hour in hours]	# list of YESTERDAY values for every hour
+		data = cisco.repeat(self.siteId, self.startdate_entry.get(), self.enddate_entry.get())
+		print(data)
 
-		xaxis = np.array(hours, dtype=np.float32) # put bars side to side
-		fig.add_subplot().bar(xaxis - 0.3, daily, width=0.15, label='DAILY')
-		fig.add_subplot().bar(xaxis - 0.15, weekly, width=0.15, label='WEEKLY')
-		fig.add_subplot().bar(xaxis, occasional, width=0.15, label='OCCASIONAL')
-		fig.add_subplot().bar(xaxis + 0.15, first_time, width=0.15, label='FIRST_TIME')
-		fig.add_subplot().bar(xaxis + 0.3, yesterday, width=0.15, label='YESTERDAY')
+		keys = list(data.keys())
+		daily = [data.get(hour).get('DAILY') for hour in keys]			# list of DAILY values for every hour
+		weekly = [data.get(hour).get('WEEKLY') for hour in keys]			# list of WEEKLY values for every hour
+		occasional = [data.get(hour).get('OCCASIONAL') for hour in keys]	# list of OCCASIONAL values for every hour
+		first_time = [data.get(hour).get('FIRST_TIME') for hour in keys]	# list of FIRST_TIME values for every hour
+		yesterday = [data.get(hour).get('YESTERDAY') for hour in keys]	# list of YESTERDAY values for every hour
+
+		xaxis = np.arange(len(keys)) # put bars side to side
+
+		fig, graph = plt.subplots(figsize=(10,5))
+		# TODO OSAMOILE: graph duplication
+		graph.bar(xaxis - 0.3, daily, width=0.15, label='DAILY')
+		graph.bar(xaxis - 0.15, weekly, width=0.15, label='WEEKLY')
+		graph.bar(xaxis, occasional, width=0.15, label='OCCASIONAL')
+		graph.bar(xaxis + 0.15, first_time, width=0.15, label='FIRST_TIME')
+		graph.bar(xaxis + 0.3, yesterday, width=0.15, label='YESTERDAY')
 
 
 
-		# dwelltime = Button(graph_frame, text = "Dwell Time")
-		# dwelltime.grid(row = 0, column = 1, padx = (0, 10))
-
-		# proximity = Button(graph_frame, text = "Proximity")
-		# self.proximity.grid(row = 0, column = 2)
 
 		fig.legend(loc='upper right')
-		canvas = FigureCanvasTkAgg(fig, master=self.repeat) # TODO: master ? # place canvas in 4th bookmark
+		canvas = FigureCanvasTkAgg(fig, master=self.repeatVisitorsGraphTab) # TODO: master ? # place canvas in 4th bookmark
 		canvas.get_tk_widget().pack()
 
 		# OSAMOILE TODO: change x-axis
 		# OSAMOILE TODO: integrade with date fields
 		# OSAMOILE TODO: several days vs hourly
-		# SBASNAKA TODO: buttons (repeat visitors, dwell time, proximity)
 
 		# TODO: Forecasting number of visitors (tomorrow)
 
@@ -178,15 +176,15 @@ class Window:
 
 
 		self.presence_note = ttk.Notebook(self.tab4)
-		self.repeat = Frame(self.presence_note)
+		self.repeatVisitorsGraphTab = Frame(self.presence_note)
 		self.dwell = Frame(self.presence_note)
 		self.proximity = Frame(self.presence_note)
 
-		self.repeat.grid(row = 0, column = 0)
+		self.repeatVisitorsGraphTab.grid(row = 0, column = 0)
 		self.dwell.grid(row = 0, column = 1)
 		self.proximity.grid(row = 0, column = 2)
 
-		self.presence_note.add(self.repeat, text='Repeat Visitors')
+		self.presence_note.add(self.repeatVisitorsGraphTab, text='Repeat Visitors')
 		self.presence_note.add(self.dwell, text='Dwell Time')
 		self.presence_note.add(self.proximity, text='Proximity')
 
@@ -314,34 +312,6 @@ class Window:
 		# TODO: "Not Found" error switching bookmarks
 		# OSAMOILE TODO ??? : one more notebook for floors
 	
-	# def datesdiff(self):
-	# 	start = self.startdate_entry.get() ## CHECKING DIFFERENCE BETWEEN DATES
-	# 	start = start.split("-")
-	# 	end = self.enddate_entry.get()
-	# 	end = end.split("-")
-	# 	delta = datetime.datetime(int(end[0]), int(end[1]), int(end[2])) - datetime.datetime(int(start[0]), int(start[1]), int(start[2]))
-	# 	# start = self.startdate_entry.get()
-	# 	# start = start.split("-")
-	# 	# delta = datetime.datetime(int(start[0]), int(start[1]), int(start[2])) + datetime.timedelta(days=10) ## LIKE THIS WE CAN TAKE TOMMOROW'S DATE
-	# 	# print (delta)
-	# 	return (delta)
-
-	def takeRepeatVisitors(self):
-		# difference = self.datesdiff()
-		# if (difference > 3):
-		if (self.startdate_entry.get() == self.enddate_entry.get()):
-			hourly = cisco.repeat(self.siteId, Window.url, Window.password, Window.username, self, "hourly")
-			return (hourly)
-		daily = cisco.repeat(self.siteId, Window.url, Window.password, Window.username, self, "daily")
-		# hourly = []
-		# start = self.startdate_entry.get()
-		# start = start.split("-")
-		# for i in range(difference):
-		# 	delta = datetime.datetime(int(start[0]), int(start[1]), int(start[2])) + datetime.timedelta(days = i + 1)
-		# 	print (delta)
-		# 	hourly.append(cisco.repeat(self.siteId, Window.url, Window.password, Window.username, self, "connected", delta.strftime("%Y-%m-%d")))
-		return daily
-
 	def totalVisitors(self):
 		connected = cisco.takeTotalVisitors(self.siteId, self, "connected")
 		all_visitors = cisco.takeTotalVisitors(self.siteId, self, "visitors")
@@ -367,13 +337,6 @@ class Window:
 		else:
 			dwell = cisco.takeDwellTimeGraph(self.siteId, self, "daily")
 		return dwell
-
-	def repeatVisitorsGraph(self):
-		if (self.startdate_entry.get() == self.enddate_entry.get()):
-			repeat = cisco.repeat(self.siteId, self, "hourly")
-		else:
-			repeat = cisco.repeat(self.siteId, self, "daily")
-		return repeat
 
 	def peakHour(self):
 		peakhour = None

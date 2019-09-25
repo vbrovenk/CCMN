@@ -55,7 +55,7 @@ def getFloorImage(url, username, password, mapdatajson):
 					print(e)
 
 ########## INFO #########
-url = "https://cisco-presence.unit.ua"
+url = "https://cisco-presence.unit.ua" # TODO: remove
 username = "RO"
 password = "Passw0rd"
 
@@ -69,14 +69,14 @@ connected = "/api/presence/v1/connected/count"
 visitors = "/api/presence/v1/visitor/count"
 repeat = "/api/presence/v1/repeatvisitors/count"
 
-def takeSiteId(url, username, password):
+def takeSiteId(url, username, password): # TODO: move to cisco
 	data = takeRequest(url, sites, username, password)
 	id = data[0]["aesUId"]
 	# print(id)
 	return (id)
 
 
-def takeRequest(url, restAPI, username, password):
+def takeRequest(url, restAPI, username, password): # TODO: move to cisco
 	endpoint = url + restAPI
 	# print("CHECK: " + endpoint)
 	# print("Try URL: " + endpoint)
@@ -87,39 +87,6 @@ def takeRequest(url, restAPI, username, password):
 	except Exception as e:
 		print(e)
 	return (data)
-
-# def takeConnectedDevices(id, url, password, username, mainWindow):
-# 	devices = connected + mainWindow.day + "?siteId=" + str(id)
-# 	answer = takeRequest(url, devices, username, password)
-# 	# print(connected)
-# 	# print(devices)
-# 	print(answer)
-# 	# print("HERE")
-# 	# return (answer)
-
-# def takeAllVisitors(url, password, username, mainWindow):
-# 	devices = visitors + mainWindow.day + "?siteId=" + str(id)
-# 	# print(devices)
-# 	answer = takeRequest(url, devices, username, password)
-# 	print(answer)
-
-# def takeRepeatVisitors(url, password, username, mainWindow):
-# 	devices = repeat + mainWindow.day + "?siteId=" + str(id)
-# 	# print(devices)
-# 	answer = takeRequest(url, devices, username, password)
-# 	print(answer)
-
-def takeCooords(url, password, username):
-	location = None
-	try:
-		location = takeRequest(url, "/api/location/v2/clients", username, password)
-		print("got data")
-		# print(json.dumps(location, indent = 5))
-
-	except Exception as e:
-		print(e)
-	return (location)
-
 
 def resizeImgs():
 	width = 1280
