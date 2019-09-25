@@ -172,14 +172,11 @@ def takeRepeatVisitors(id, url, password, username, mode):
 	# print(answer)
 	return (answer)
 
-daily_repeat = "/api/presence/v1/repeatvisitors/daily"
-hourly_repeat = "/api/presence/v1/repeatvisitors/hourly"
-
-def repeat(id, mainWindow, mode):
-	if (mode == "daily"):
-		devices = daily_repeat + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get() ##if period is more than 3 days
-	elif (mode == "hourly"):
-		devices = hourly_repeat + "?siteId=" + str(id) + "&date=" + mainWindow.startdate_entry.get()
+def repeat(id, startDate, endDate):
+	if (startDate == endDate):
+		devices = "/api/presence/v1/repeatvisitors/hourly?siteId=" + str(id) + "&date=" + startDate
+	else:
+		devices = "/api/presence/v1/repeatvisitors/daily?siteId=" + str(id) + "&startDate=" + startDate + "&endDate=" + endDate # if period is more than a day
 	answer = takeRequest(url, devices, username, password)
 	return (answer)
 
