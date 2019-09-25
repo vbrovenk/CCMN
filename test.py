@@ -138,6 +138,10 @@ def resizeImgs():
 	im5 = im1.resize((width, height), Image.ANTIALIAS)
 	im5.save("maps/3rdFloor" + ".jpg")
 
+#Get Images of Maps
+	# mapdatajson = takeRequest(urlCMX, "/api/config/v1/maps", usernameCMX, passwordCMX)
+	# getFloorImage(urlCMX, usernameCMX, passwordCMX, mapdatajson)
+
 def createGUI():
 
 

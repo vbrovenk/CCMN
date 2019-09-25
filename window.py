@@ -7,7 +7,7 @@ from tkinter import ttk
 from PIL import ImageTk, Image
 
 from threading import Thread
-from datetime import date
+import datetime
 
 import time
 import cisco
@@ -19,17 +19,17 @@ import numpy as np
 class Window:
 
 	urlCMX = "https://cisco-cmx.unit.ua"   # TODO useless
-	usernameCMX = "RO"                     # TODO useless
-	passwordCMX = "just4reading"           # TODO useless
+	usernameCMX = "RO"
+	passwordCMX = "just4reading"
 
-	url = "https://cisco-presence.unit.ua" # TODO useless
-	username = "RO"                        # TODO useless
-	password = "Passw0rd"                  # TODO useless
+	url = "https://cisco-presence.unit.ua"
+	username = "RO"
+	password = "Passw0rd"
 
 	def graphic(self):
 		fig = Figure(figsize=(10, 5)) # figure 20x1 inches
 		hourly = cisco.takeRepeatVisitors(self.siteId, Window.url, Window.password, Window.username, "hourly")
-		print(hourly)
+		# print(hourly)
 		hours = list(hourly.keys())
 
 		daily = [hourly.get(hour).get('DAILY') for hour in hours]			# list of DAILY values for every hour
@@ -45,16 +45,26 @@ class Window:
 		fig.add_subplot().bar(xaxis + 0.15, first_time, width=0.15, label='FIRST_TIME')
 		fig.add_subplot().bar(xaxis + 0.3, yesterday, width=0.15, label='YESTERDAY')
 
+
+
+		# dwelltime = Button(graph_frame, text = "Dwell Time")
+		# dwelltime.grid(row = 0, column = 1, padx = (0, 10))
+
+		# proximity = Button(graph_frame, text = "Proximity")
+		# self.proximity.grid(row = 0, column = 2)
+
 		fig.legend(loc='upper right')
-		canvas = FigureCanvasTkAgg(fig, master=self.tab4) # TODO: master ? # place canvas in 4th bookmark
-		canvas.get_tk_widget().place(x=50, y=250)
-		# OSAMOILE TODO: finish graphic
-		# aka: number of repeat visitors over all available ranges
-		# mb dwell time, Sum of Connected Visitor
+		canvas = FigureCanvasTkAgg(fig, master=self.repeat) # TODO: master ? # place canvas in 4th bookmark
+		canvas.get_tk_widget().pack()
+
+		# OSAMOILE TODO: change x-axis
+		# OSAMOILE TODO: integrade with date fields
+		# OSAMOILE TODO: several days vs hourly
+		# SBASNAKA TODO: buttons (repeat visitors, dwell time, proximity)
 
 		# TODO: Forecasting number of visitors (tomorrow)
 
-		# TODO: session duration and the day of the week
+		# OSAMOILE TODO: session duration and the day of the week
 		#       number of connections and the day of the week
 		
 
@@ -75,20 +85,25 @@ class Window:
 
 		self.style = ttk.Style()
 
+		st = ttk.Style()
+
 		self.style.theme_create( "yummy", parent="alt", 
 		settings=
 		{
-			"TNotebook": {"configure": {"tabmargins": [20, 10, 0, 20] } },
+			"TNotebook": {"configure": {"tabmargins": [10, 10, 0, 20] } },
 			"TNotebook.Tab": {
 			"configure": {"padding": [50, 10], "background": 'white' },
 			"map":       {"background": [("selected", 'cyan')],
 			"expand": [("selected", [0, 0, 0, 0])] } } 
 		})
+		st.configure("W.TNotebook.Tab",
+			padding = [50, 10])
+		st.map("W.TNotebook.Tab",
+			background = [("selected", "black")])
 
-		self.style.theme_use("yummy")
+		# self.style.theme_use("yummy")
 
-		#### NOTEBOOK ####
-		self.style.theme_use("yummy")
+		# #### NOTEBOOK ####
 
 		self.tab_control = ttk.Notebook(self.window)
 		self.tab1 = Frame(self.tab_control)
@@ -107,7 +122,7 @@ class Window:
 		self.tab_control.add(self.tab3, text='3rd Floor')
 		self.tab_control.add(self.tab4, text='Presence')
 
-		self.tab_control.pack(expand=1, fill='both')
+		self.tab_control.pack(expand=1, fill = BOTH)
 
 		#### CANVAS ####
 		# 1st
@@ -130,19 +145,21 @@ class Window:
 
 		#### PRESENCE FRAME ####
 
+		today = datetime.datetime.today().strftime("%Y-%m-%d")
+
 		calendar_button = Button(self.tab4, text = "Choose Date Range", command = self.create_calendar)
 		calendar_button.place(x = 1600, y = 40)
 
 		self.startdate_entry = Entry(self.tab4)
 		self.startdate_entry.place(x = 1600, y = 65)
-		self.startdate_entry.insert(0, "2019-09-21")
+		self.startdate_entry.insert(0, today)
 
 		start_label = Label(self.tab4, text = "Start Date")
 		start_label.place(x = 1525, y = 68)
 		
 		self.enddate_entry = Entry(self.tab4)
 		self.enddate_entry.place(x = 1600, y = 95)
-		self.enddate_entry.insert(0, "2019-09-21")
+		self.enddate_entry.insert(0, today)
 
 		end_label = Label(self.tab4, text = "End Date")
 		end_label.place(x = 1525, y = 98)
@@ -151,7 +168,7 @@ class Window:
 		tmp.place(x = 1600, y = 130)
 
 
-		self.frame = Frame(self.tab4, highlightbackground = "green", highlightthickness=2, width=1000, height=110, borderwidth = 2)
+		self.frame = Frame(self.tab4, background = "grey", width=1000, height=110, borderwidth = 4)
 		self.frame.place(x = 100, y = 100)
 
 		self.visitors_label = Label(self.frame, text = "")
@@ -159,7 +176,24 @@ class Window:
 		self.peakhour_label = Label(self.frame, text = "")
 		self.conversion_label = Label(self.frame, text = "")
 
-		# self.frame.pack_propagate(False)
+
+		self.presence_note = ttk.Notebook(self.tab4)
+		self.repeat = Frame(self.presence_note)
+		self.dwell = Frame(self.presence_note)
+		self.proximity = Frame(self.presence_note)
+
+		self.repeat.grid(row = 0, column = 0)
+		self.dwell.grid(row = 0, column = 1)
+		self.proximity.grid(row = 0, column = 2)
+
+		self.presence_note.add(self.repeat, text='Repeat Visitors')
+		self.presence_note.add(self.dwell, text='Dwell Time')
+		self.presence_note.add(self.proximity, text='Proximity')
+
+		self.presence_note.place(x = 100, y = 270)
+
+		# self.presence_note.bind("<<NotebookTabChanged>>", self.on_note_selected)
+
 		#### MAC ADRESS ####
 		self.MACaddress = StringVar()
 		self.detectingControllers = StringVar()
@@ -178,12 +212,13 @@ class Window:
 
 
 	def give_info(self):
-		coords = self.takeCooords(Window.urlCMX, Window.passwordCMX, Window.usernameCMX)
+		# TODO: remove self's
+		coords = cisco.takeCooords()
 		# print(json.dumps(coords, indent=5))
 		for device in coords:
 			if (self.message.get() == device["macAddress"]):
 				self.MACaddress = device["macAddress"]
-				# TODO: xlogin - get and display
+				# TODO: xlogin - searching: get and display
 				self.detectingControllers = device["detectingControllers"]
 				self.floor = device["mapInfo"]["mapHierarchyString"].split('>')[2]
 				self.ssid = device["ssId"]
@@ -231,31 +266,6 @@ class Window:
 			print("False")
 			self.clear()
 
-	def takeRequest(self, url, restAPI, username, password):
-		endpoint = url + restAPI
-		# print("Try URL: " + endpoint)
-		data = None
-		try:
-			returnData = requests.request("GET", endpoint, auth=(username, password), verify=False)
-			data = json.loads(returnData.text)
-		except Exception as e:
-			print(e)
-		return (data)
-
-	def takeCooords(self, url, password, username):
-		location = None
-		try:
-			location = self.takeRequest(url, "/api/location/v2/clients", username, password)
-			# print("got data")
-			# print(json.dumps(location, indent = 5))
-
-		except Exception as e:
-			print(e)
-		return (location)
-
-	# def diff(self, first, second):
-	# 	return 
-
 	def printDevices(self, canvas, needFloor):
 		previous_info = []
 		while True:
@@ -263,7 +273,7 @@ class Window:
 				# print("END: " + needFloor)
 				break
 
-			info = self.takeCooords(Window.urlCMX, Window.passwordCMX, Window.usernameCMX)
+			info = cisco.takeCooords()
 			mac = [i["macAddress"] for i in info]
 			time.sleep(1)
 			for device in info:
@@ -300,30 +310,82 @@ class Window:
 		self.Ip.place(x = 1500, y = 250)
 		self.Coords = Label(self.window, text="Co-ordinates:", font="Times 26", fg='#666699')
 		self.Coords.place(x = 1500, y = 330)
+		# TODO: output floor
+		# TODO: "Not Found" error switching bookmarks
+		# OSAMOILE TODO ??? : one more notebook for floors
 	
+	# def datesdiff(self):
+	# 	start = self.startdate_entry.get() ## CHECKING DIFFERENCE BETWEEN DATES
+	# 	start = start.split("-")
+	# 	end = self.enddate_entry.get()
+	# 	end = end.split("-")
+	# 	delta = datetime.datetime(int(end[0]), int(end[1]), int(end[2])) - datetime.datetime(int(start[0]), int(start[1]), int(start[2]))
+	# 	# start = self.startdate_entry.get()
+	# 	# start = start.split("-")
+	# 	# delta = datetime.datetime(int(start[0]), int(start[1]), int(start[2])) + datetime.timedelta(days=10) ## LIKE THIS WE CAN TAKE TOMMOROW'S DATE
+	# 	# print (delta)
+	# 	return (delta)
+
+	def takeRepeatVisitors(self):
+		# difference = self.datesdiff()
+		# if (difference > 3):
+		if (self.startdate_entry.get() == self.enddate_entry.get()):
+			hourly = cisco.repeat(self.siteId, Window.url, Window.password, Window.username, self, "hourly")
+			return (hourly)
+		daily = cisco.repeat(self.siteId, Window.url, Window.password, Window.username, self, "daily")
+		# hourly = []
+		# start = self.startdate_entry.get()
+		# start = start.split("-")
+		# for i in range(difference):
+		# 	delta = datetime.datetime(int(start[0]), int(start[1]), int(start[2])) + datetime.timedelta(days = i + 1)
+		# 	print (delta)
+		# 	hourly.append(cisco.repeat(self.siteId, Window.url, Window.password, Window.username, self, "connected", delta.strftime("%Y-%m-%d")))
+		return daily
+
 	def totalVisitors(self):
-		connected = cisco.takeTotalVisitors(self.siteId, Window.url, Window.password, Window.username, self, "connected")
-		all_visitors = cisco.takeTotalVisitors(self.siteId, Window.url, Window.password, Window.username, self, "visitors")
-		unique = cisco.takeTotalVisitors(self.siteId, Window.url, Window.password, Window.username, self, "unique")
+		connected = cisco.takeTotalVisitors(self.siteId, self, "connected")
+		all_visitors = cisco.takeTotalVisitors(self.siteId, self, "visitors")
+		unique = cisco.takeTotalVisitors(self.siteId, self, "unique")
 		percentage = round(connected / all_visitors * 100)
 		return [unique, all_visitors, connected, percentage]
+
+	def totalVisitorsGraph(self):
+		if (self.startdate_entry.get() == self.enddate_entry.get()):
+			info = cisco.takeTotalVisitorsGraph(self.siteId, self, "hourly")
+		else:
+			info = cisco.takeTotalVisitorsGraph(self.siteId, self, "daily")
+		return info
 	
 	def dwellTime(self):
-		dwell = cisco.takeDwellTime(self.siteId, Window.url, Window.password, Window.username, self, "dwell")
-		average_dwell = cisco.takeDwellTime(self.siteId, Window.url, Window.password, Window.username, self, "average_dwell")
+		dwell = cisco.takeDwellTime(self.siteId, self, "dwell")
+		average_dwell = cisco.takeDwellTime(self.siteId, self, "average_dwell")
 		return [list(dwell.values()), round(average_dwell)]
+	
+	def dwellTimeGraph(self):
+		if (self.startdate_entry.get() == self.enddate_entry.get()):
+			dwell = cisco.takeDwellTimeGraph(self.siteId, self, "hourly")
+		else:
+			dwell = cisco.takeDwellTimeGraph(self.siteId, self, "daily")
+		return dwell
+
+	def repeatVisitorsGraph(self):
+		if (self.startdate_entry.get() == self.enddate_entry.get()):
+			repeat = cisco.repeat(self.siteId, self, "hourly")
+		else:
+			repeat = cisco.repeat(self.siteId, self, "daily")
+		return repeat
 
 	def peakHour(self):
 		peakhour = None
 		peakhour_visitors = None
 		peakday = None
 		if self.startdate_entry.get() != self.enddate_entry.get():
-			insights = cisco.takeInsights(self.siteId, Window.url, Window.password, Window.username, self, "month_peakhour")
+			insights = cisco.takeInsights(self.siteId, self, "month_peakhour")
 			peakhour = insights["monthStats"]["peakHour"]
 			peakhour_visitors = insights["monthStats"]["peakHourCount"]
 			peakday = insights["monthStats"]["peakCount"]
 		else:
-			info = cisco.takeInsights(self.siteId, Window.url, Window.password, Window.username, self, "day_peakhour")
+			info = cisco.takeInsights(self.siteId, self, "day_peakhour")
 			# print (info.items()[0])##how it works!?
 			info = max(info.items(), key=lambda k: k[1])
 			peakhour = info[0]
@@ -331,8 +393,8 @@ class Window:
 		return [peakhour, peakhour_visitors, peakday]
 
 	def conversionRate(self):
-		total = cisco.takeTotalVisitors(self.siteId, Window.url, Window.password, Window.username, self, "visitors")
-		passerby = cisco.takeTotalVisitors(self.siteId, Window.url, Window.password, Window.username, self, "passerby")
+		total = cisco.takeTotalVisitors(self.siteId, self, "visitors")
+		passerby = cisco.takeTotalVisitors(self.siteId, self, "passerby")
 		conversion_rate = round(total * 100 / (total + passerby))
 		# print([conversion_rate, total, passerby])
 		return [conversion_rate, total, passerby]
@@ -413,7 +475,7 @@ class Window:
 	def peak_hour_label(self):
 		peakhour = self.peakHour()
 		box = Listbox(self.frame,
-						width=19,
+						width=20,
 						height=1,
 						bg="blue",
 						selectbackground="#5EAA5A",
@@ -480,41 +542,16 @@ class Window:
 		self.conversion_label.grid(row = 0, column = 4)
 
 	def takeStartDate(self):
-		# self.start_date = self.calendar.get_date()
 		self.startdate_entry.delete(0, END)
 		self.startdate_entry.insert(0, self.calendar.get_date())
-		# tmp = self.calendar.get_date().split("/")
-		# # print (tmp)
-		# day = tmp[1]
-		# month = tmp[0]
-		# year = "20" + str(tmp[2])
-		# if (len(day) == 1):
-		# 	day = "0" + day
-		# if (len(month) == 1):
-		# 	month = "0" + month
-		# # print (year, " | ", month, " | ", day)
-		# self.start_date = year + "-" + month + "-" + day
-		# print ("start = " + self.start_date)
 
 	def takeEndDate(self):
 		self.enddate_entry.delete(0, END)
 		self.enddate_entry.insert(0, self.calendar.get_date())
-		# self.end_date = self.calendar.get_date()
-		# # print (tmp)
-		# day = tmp[1]
-		# month = tmp[0]
-		# year = "20" + str(tmp[2])
-		# if (len(day) == 1):
-		# 	day = "0" + day
-		# if (len(month) == 1):
-		# 	month = "0" + month
-		# # print (year, " | ", month, " | ", day)
-		# self.end_date = year + "-" + month + "-" + day
-		# print ("end = " + self.end_date)
 
 	def create_calendar(self):
 		top = Toplevel(self.window)
-		self.calendar = Calendar(top, font = "Times 14", selectbackground = "blue",  selectmode = "day", year = 2019, month = 9, date_pattern = "y-mm-dd", maxdate = date.today())
+		self.calendar = Calendar(top, font = "Times 14", selectbackground = "blue",  selectmode = "day", year = 2019, month = 9, date_pattern = "y-mm-dd", maxdate = datetime.datetime.today())
 		self.calendar.pack()
 		from_button = Button(top, text = "Start Date", command = self.takeStartDate)
 		from_button.pack(side = LEFT)
@@ -531,6 +568,13 @@ class Window:
 		self.dwell_time_label()
 		self.peak_hour_label()
 		self.conversion_rate_label()
+
+	# def on_note_selected(self, event):
+	# 	selected_tab = event.widget.select()
+	# 	tab_text = event.widget.tab(selected_tab, "text")
+
+	# 	if (tab_text == "Repeat Visitors"):
+	# 		self.graphic()
 
 	def on_tab_selected(self, event, canvas1, canvas2, canvas3):
 		selected_tab = event.widget.select()
@@ -566,29 +610,7 @@ class Window:
 			self.Coords.destroy()
 
 			self.change()
-			# TODO SBASNAKA: conversion rate = Floor congestion
-
-
-			# check = Button(self.tab4, text = "check", command = cisco.testsumvisitors(self.siteId, Window.url, Window.password, Window.username, self))
-			# check.place(x = 1500, y = 100)
-
-			# self.comboExample = ttk.Combobox(self.tab4, 
-			# 							values=[
-			# 									"Today", 
-			# 									"Yesterday",
-			# 									"Last 3 Days",
-			# 									"Last 7 Days",
-			# 									"Last 30 Days",
-			# 									"This Month",
-			# 									"Last Month"])
-			# # print(dict(self.comboExample)) 
-			# self.comboExample.place(x = 20, y = 320)
-			# self.comboExample.current(0)
-
-			# # print(self.comboExample.current(), self.comboExample.get())
-			# self.comboExample.bind("<<ComboboxSelected>>", self.callbackFunc)
 			self.graphic()
-
 
 	def start(self):
 		self.tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =self.canvas1, arg2 = self.canvas2, arg3 = self.canvas3: self.on_tab_selected(event, arg1, arg2, arg3))
