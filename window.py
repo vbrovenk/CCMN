@@ -18,19 +18,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class Window:
-
-	urlCMX = "https://cisco-cmx.unit.ua"   # TODO useless
-	usernameCMX = "RO"
-	passwordCMX = "just4reading"
-
-	url = "https://cisco-presence.unit.ua"
-	username = "RO"
-	password = "Passw0rd"
-
 	def graphic(self):
 
-		data = cisco.repeat(self.siteId, self.startdate_entry.get(), self.enddate_entry.get())
-		print(data)
+		data = self.request.takeRepeatVisitors(self.startdate_entry.get(), self.enddate_entry.get())
+		# print(data)
 
 		keys = list(data.keys())
 		daily = [data.get(hour).get('DAILY') for hour in keys]			# list of DAILY values for every hour
@@ -66,20 +57,16 @@ class Window:
 		#       number of connections and the day of the week
 		
 
-	def __init__(self, siteId):
+	def __init__(self):
 		self.x = 1965
 		self.y = 897
 
+		self.request = cisco.Request()
 		self.detector = False
-		self.siteId = siteId # TODO useless
 
 		self.window = Tk()
 		self.window.title("CCMN")
 		self.window.geometry(str(self.x) + "x" + str(self.y))
-
-		self.day = "/today" # TODO useless
-		# self.start_date = "2019-09-21"
-		# self.end_date = "2019-09-21"
 
 		self.style = ttk.Style()
 
@@ -94,10 +81,8 @@ class Window:
 			"map":       {"background": [("selected", 'cyan')],
 			"expand": [("selected", [0, 0, 0, 0])] } } 
 		})
-		st.configure("W.TNotebook.Tab",
-			padding = [50, 10])
-		st.map("W.TNotebook.Tab",
-			background = [("selected", "black")])
+		st.configure("my.Calendar",
+			font = "Times 20")
 
 		# self.style.theme_use("yummy")
 
@@ -211,7 +196,7 @@ class Window:
 
 	def give_info(self):
 		# TODO: remove self's
-		coords = cisco.takeCooords()
+		coords = self.request.takeCooords()
 		# print(json.dumps(coords, indent=5))
 		for device in coords:
 			if (self.message.get() == device["macAddress"]):
@@ -271,7 +256,7 @@ class Window:
 				# print("END: " + needFloor)
 				break
 
-			info = cisco.takeCooords()
+			info = self.request.takeCooords()
 			mac = [i["macAddress"] for i in info]
 			time.sleep(1)
 			for device in info:
@@ -313,29 +298,31 @@ class Window:
 		# OSAMOILE TODO ??? : one more notebook for floors
 	
 	def totalVisitors(self):
-		connected = cisco.takeTotalVisitors(self.siteId, self, "connected")
-		all_visitors = cisco.takeTotalVisitors(self.siteId, self, "visitors")
-		unique = cisco.takeTotalVisitors(self.siteId, self, "unique")
+		connected = self.request.takeTotalVisitors(self.startdate_entry.get(), self.enddate_entry.get(), "connected")
+		all_visitors = self.request.takeTotalVisitors(self.startdate_entry.get(), self.enddate_entry.get(), "visitors")
+		unique = self.request.takeTotalVisitors(self.startdate_entry.get(), self.enddate_entry.get(), "unique")
 		percentage = round(connected / all_visitors * 100)
 		return [unique, all_visitors, connected, percentage]
 
 	def totalVisitorsGraph(self):
-		if (self.startdate_entry.get() == self.enddate_entry.get()):
-			info = cisco.takeTotalVisitorsGraph(self.siteId, self, "hourly")
-		else:
-			info = cisco.takeTotalVisitorsGraph(self.siteId, self, "daily")
+		# if (self.startdate_entry.get() == self.enddate_entry.get()):
+		# 	info = self.request.takeTotalVisitorsGraph(self, "hourly")
+		# else:
+		# 	info = self.request.takeTotalVisitorsGraph(self, "daily")
+		info = self.request.takeTotalVisitorsGraph(self.startdate_entry.get(), self.enddate_entry.get()) ## mb no need in this func
 		return info
 	
 	def dwellTime(self):
-		dwell = cisco.takeDwellTime(self.siteId, self, "dwell")
-		average_dwell = cisco.takeDwellTime(self.siteId, self, "average_dwell")
+		dwell = self.request.takeDwellTime(self.startdate_entry.get(), self.enddate_entry.get(), "dwell")
+		average_dwell = self.request.takeDwellTime(self.startdate_entry.get(), self.enddate_entry.get(), "average_dwell")
 		return [list(dwell.values()), round(average_dwell)]
 	
 	def dwellTimeGraph(self):
-		if (self.startdate_entry.get() == self.enddate_entry.get()):
-			dwell = cisco.takeDwellTimeGraph(self.siteId, self, "hourly")
-		else:
-			dwell = cisco.takeDwellTimeGraph(self.siteId, self, "daily")
+		# if (self.startdate_entry.get() == self.enddate_entry.get()):
+		# 	dwell = self.request.takeDwellTimeGraph(self, "hourly")
+		# else:
+		# 	dwell = self.request.takeDwellTimeGraph(self, "daily")
+		dwell = self.request.takeDwellTimeGraph(self.startdate_entry.get(), self.enddate_entry.get()) ## mb no need in this func
 		return dwell
 
 	def peakHour(self):
@@ -343,12 +330,12 @@ class Window:
 		peakhour_visitors = None
 		peakday = None
 		if self.startdate_entry.get() != self.enddate_entry.get():
-			insights = cisco.takeInsights(self.siteId, self, "month_peakhour")
+			insights = self.request.takeInsights(self.startdate_entry.get(), self.enddate_entry.get(), "month_peakhour")
 			peakhour = insights["monthStats"]["peakHour"]
 			peakhour_visitors = insights["monthStats"]["peakHourCount"]
 			peakday = insights["monthStats"]["peakCount"]
 		else:
-			info = cisco.takeInsights(self.siteId, self, "day_peakhour")
+			info = self.request.takeInsights(self.startdate_entry.get(), self.enddate_entry.get(), "day_peakhour")
 			# print (info.items()[0])##how it works!?
 			info = max(info.items(), key=lambda k: k[1])
 			peakhour = info[0]
@@ -356,8 +343,8 @@ class Window:
 		return [peakhour, peakhour_visitors, peakday]
 
 	def conversionRate(self):
-		total = cisco.takeTotalVisitors(self.siteId, self, "visitors")
-		passerby = cisco.takeTotalVisitors(self.siteId, self, "passerby")
+		total = self.request.takeTotalVisitors(self.startdate_entry.get(), self.enddate_entry.get(), "visitors")
+		passerby = self.request.takeTotalVisitors(self.startdate_entry.get(), self.enddate_entry.get(), "passerby")
 		conversion_rate = round(total * 100 / (total + passerby))
 		# print([conversion_rate, total, passerby])
 		return [conversion_rate, total, passerby]
@@ -514,8 +501,8 @@ class Window:
 
 	def create_calendar(self):
 		top = Toplevel(self.window)
-		self.calendar = Calendar(top, font = "Times 14", selectbackground = "blue",  selectmode = "day", year = 2019, month = 9, date_pattern = "y-mm-dd", maxdate = datetime.datetime.today())
-		self.calendar.pack()
+		self.calendar = Calendar(top, bordercolor = "black", font = "Times 20", background = "white", weekendforeground = "black", disableddayforeground = "#686564", showothermonthdays = False, showweeknumbers = False, foreground = "black", selectforeground = "blue", selectbackground = "blue", selectmode = "day", year = 2019, month = 9, date_pattern = "y-mm-dd", maxdate = datetime.datetime.today())
+		self.calendar.pack(fill = BOTH, expand = 1)
 		from_button = Button(top, text = "Start Date", command = self.takeStartDate)
 		from_button.pack(side = LEFT)
 		to_button = Button(top, text = "End Date", command = self.takeEndDate)
@@ -577,7 +564,3 @@ class Window:
 
 	def start(self):
 		self.tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =self.canvas1, arg2 = self.canvas2, arg3 = self.canvas3: self.on_tab_selected(event, arg1, arg2, arg3))
-
-
-		
-		self.window.mainloop()

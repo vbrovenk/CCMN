@@ -69,24 +69,18 @@ connected = "/api/presence/v1/connected/count"
 visitors = "/api/presence/v1/visitor/count"
 repeat = "/api/presence/v1/repeatvisitors/count"
 
-def takeSiteId(url, username, password): # TODO: move to cisco
-	data = takeRequest(url, sites, username, password)
-	id = data[0]["aesUId"]
-	# print(id)
-	return (id)
 
-
-def takeRequest(url, restAPI, username, password): # TODO: move to cisco
-	endpoint = url + restAPI
-	# print("CHECK: " + endpoint)
-	# print("Try URL: " + endpoint)
-	data = None
-	try:
-		returnData = requests.request("GET", endpoint, auth=(username, password), verify=False)
-		data = json.loads(returnData.text)
-	except Exception as e:
-		print(e)
-	return (data)
+# def takeRequest(url, restAPI, username, password): # TODO: move to cisco
+# 	endpoint = url + restAPI
+# 	# print("CHECK: " + endpoint)
+# 	# print("Try URL: " + endpoint)
+# 	data = None
+# 	try:
+# 		returnData = requests.request("GET", endpoint, auth=(username, password), verify=False)
+# 		data = json.loads(returnData.text)
+# 	except Exception as e:
+# 		print(e)
+# 	return (data)
 
 def resizeImgs():
 	width = 1280
@@ -110,12 +104,8 @@ def resizeImgs():
 	# getFloorImage(urlCMX, usernameCMX, passwordCMX, mapdatajson)
 
 def createGUI():
-
-
-	# global id
-	id = takeSiteId(url, username, password)
 	###### CLASS ########
-	mainWindow = Window(id)
+	mainWindow = Window()
 
 	mainWindow.start()
 	mainWindow.window.mainloop()

@@ -1,226 +1,128 @@
 import requests
 import json
 
-urlCMX = "https://cisco-cmx.unit.ua"
-usernameCMX = "RO"
-passwordCMX = "just4reading"
+class Request:
+	def __init__(self):
+		self.urlCMX = "https://cisco-cmx.unit.ua"
+		self.usernameCMX = "RO"
+		self.passwordCMX = "just4reading"
 
-url = "https://cisco-presence.unit.ua"
-username = "RO"
-password = "Passw0rd"
+		self.url = "https://cisco-presence.unit.ua"
+		self.username = "RO"
+		self.password = "Passw0rd"
 
-# https://cisco-presence.unit.ua/api/presence/v1/connected/total?siteId=1513804707441&startDate=2019-09-23&endDate=2019-09-27
+		self.id = self.takeSiteId()
 
-########## API'S #########
-sites = "/api/config/v1/sites"
-########## TODAY AND YESTERDAY #########
-connected = "/api/presence/v1/connected/count"
-peak_hour = "/api/presence/v1/visitor/today/peakhour"
-########## 3DAYS AND 7DAYS #########
-# connected = "/api/presence/v1/connected/total"
-# visitors = "/api/presence/v1/visitor/total"
-# repeat = "/api/presence/v1/repeatvisitors/total"
-# passerby = "/api/presence/v1/passerby/total"
-day = "/today"
+		self.connected = "/api/presence/v1/connected/total"
+		self.visitors = "/api/presence/v1/visitor/total"
+		self.passerby = "/api/presence/v1/passerby/total"
+		self.unique = "/api/presence/v1/visitor/count"
 
-# percentage_of_connected_visitors = round(total_connected / total_visitors * 100)
+		self.daily_connected_graph = "/api/presence/v1/connected/daily"
+		self.daily_visitors_graph = "/api/presence/v1/visitor/daily"
+		self.daily_passerby_graph = "/api/presence/v1/passerby/daily"
 
-def takeRequest(url, restAPI, username, password):
-	endpoint = url + restAPI
-	# print("Try URL: " + endpoint)
-	data = None
-	try:
-		returnData = requests.request("GET", endpoint, auth=(username, password), verify=False)
-		# print(json.dumps(returnData, indent = 5))
-		data = json.loads(returnData.text)
-	except Exception as e:
-		print(e)
-	return (data)
+		self.hourly_connected_graph = "/api/presence/v1/connected/hourly"
+		self.hourly_visitors_graph = "/api/presence/v1/visitor/hourly"
+		self.hourly_passerby_graph = "/api/presence/v1/passerby/hourly"
 
-########## ALL INFO ABOUT VISITORS #########
+		self.dwell = "/api/presence/v1/dwell/count"
+		self.average_dwell = "/api/presence/v1/dwell/average"
 
-connected = "/api/presence/v1/connected/total"
-visitors = "/api/presence/v1/visitor/total"
-passerby = "/api/presence/v1/passerby/total"
-unique = "/api/presence/v1/visitor/count"
+		self.daily_dwelltime_graph = "/api/presence/v1/dwell/daily"
+		self.hourly_dwelltime_graph = "/api/presence/v1/dwell/hourly"
 
-def takeTotalVisitors(id, mainWindow, mode):
-	if (mode == "connected"):
-		devices = connected + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
-	elif (mode == "visitors"):
-		devices = visitors + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
-	elif (mode == "passerby"):
-		devices = passerby + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
-	else:
-		devices = unique + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
-	answer = takeRequest(url, devices, username, password)
-	# print (answer)
-	return answer
+		self.insights = "/api/presence/v1/insights"
+		self.hourly = "/api/presence/v1/visitor/hourly"
+	
+	def takeRequest(self, restAPI):
+		if restAPI == "/api/location/v2/clients":
+			endpoint = self.urlCMX + restAPI
+		else:
+			endpoint = self.url + restAPI
+		# enpoint = self.urlCMX + restAPI if restAPI == "/api/location/v2/clients" else self.url + restAPI
+		# print("Try URL: " + endpoint)
+		data = None
+		try:
+			if restAPI == "/api/location/v2/clients":
+				returnData = requests.request("GET", endpoint, auth=(self.usernameCMX, self.passwordCMX), verify=False)
+			else:
+				returnData = requests.request("GET", endpoint, auth=(self.username, self.password), verify=False)
+			# print(json.dumps(returnData, indent = 5))
+			data = json.loads(returnData.text)
+		except Exception as e:
+			print(e)
+		return (data)
 
-daily_connected_graph = "/api/presence/v1/connected/daily"
-daily_visitors_graph = "/api/presence/v1/visitor/daily"
-daily_passerby_graph = "/api/presence/v1/passerby/daily"
+	def takeTotalVisitors(self, startDate, endDate, mode):
+		if (mode == "connected"):
+			devices = self.connected + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+		elif (mode == "visitors"):
+			devices = self.visitors + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+		elif (mode == "passerby"):
+			devices = self.passerby + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+		else:
+			devices = self.unique + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+		answer = self.takeRequest(devices)
+		return answer
 
-hourly_connected_graph = "/api/presence/v1/connected/hourly"
-hourly_visitors_graph = "/api/presence/v1/visitor/hourly"
-hourly_passerby_graph = "/api/presence/v1/passerby/hourly"
+	def takeTotalVisitorsGraph(self, startDate, endDate):
+		answer = []
+		if (startDate == endDate):
+			connected = self.hourly_connected_graph + "?siteId=" + str(self.id) + "&date=" + startDate
+			visitors = self.hourly_visitors_graph + "?siteId=" + str(self.id) + "&date=" + startDate
+			passerby = self.hourly_passerby_graph + "?siteId=" + str(self.id) + "&date=" + startDate
+		elif (mode == "hourly"):
+			connected = self.daily_connected_graph + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+			visitors = self.daily_visitors_graph + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+			passerby = self.daily_passerby_graph + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+		answer.append(self.takeRequest(connected))
+		answer.append(self.takeRequest(visitors))
+		answer.append(self.takeRequest(passerby))
+		return answer
 
-def takeTotalVisitorsGraph(id, mainWindow, mode):
-	answer = []
-	if (mode == "daily"):
-		connected = daily_connected_graph + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
-		visitors = daily_visitors_graph + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
-		passerby = daily_passerby_graph + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
-	elif (mode == "hourly"):
-		connected = hourly_connected_graph + "?siteId=" + str(id) + "&date=" + mainWindow.startdate_entry.get()
-		visitors = hourly_visitors_graph + "?siteId=" + str(id) + "&date=" + mainWindow.startdate_entry.get()
-		passerby = hourly_passerby_graph + "?siteId=" + str(id) + "&date=" + mainWindow.startdate_entry.get()
-	answer.append(takeRequest(url, connected, username, password))
-	answer.append(takeRequest(url, visitors, username, password))
-	answer.append(takeRequest(url, passerby, username, password))
-	# print (answer)
-	return answer
+	def takeDwellTime(self, startDate, endDate, mode):
+		if (mode == "dwell"):
+			devices = self.dwell + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+		elif (mode == "average_dwell"):
+			devices = self.average_dwell + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+		answer = self.takeRequest(devices)
+		return answer
 
-########## OVER ANY DATE RANGE #########
+	def takeDwellTimeGraph(self, startDate, endDate):
+		if (startDate == endDate):
+			devices = self.hourly_dwelltime_graph + "?siteId=" + str(self.id) + "&date=" + startDate
+		else:
+			devices = self.daily_dwelltime_graph + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+		answer = self.takeRequest(devices)
+		return answer
 
+	def takeInsights(self, startDate, endDate, mode):
+		if (mode == "month_peakhour"):
+			devices = self.insights + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+		elif (startDate == endDate and mode == "day_peakhour"):
+			devices = self.hourly + "/" + "?siteId=" + str(self.id) + "&date=" + startDate
+		answer = self.takeRequest(devices)
+		return answer
 
-########## ALL INFO ABOUT DWELL TIME #########
-
-dwell = "/api/presence/v1/dwell/count"
-average_dwell = "/api/presence/v1/dwell/average"
-
-def takeDwellTime(id, mainWindow, mode):
-	if (mode == "dwell"):
-		devices = dwell + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
-	elif (mode == "average_dwell"):
-		devices = average_dwell + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
-	answer = takeRequest(url, devices, username, password)
-	# print (answer)
-	return answer
-
-
-daily_dwelltime_graph = "/api/presence/v1/dwell/daily"
-hourly_dwelltime_graph = "/api/presence/v1/dwell/hourly"
-
-def takeDwellTimeGraph(id, mainWindow, mode):
-	if (mode == "daily"):
-		devices = daily_dwelltime_graph + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
-	elif (mode == "hourly"):
-		devices = hourly_dwelltime_graph + "?siteId=" + str(id) + "&date=" + mainWindow.startdate_entry.get()
-	answer = takeRequest(url, devices, username, password)
-	# print (answer)
-	return answer
-########## OVER ANY DATE RANGE #########
-
-##monthstats peakDay
-
-########## ALL INFO ABOUT PEAK TIME #########
-
-insights = "/api/presence/v1/insights"
-hourly = "/api/presence/v1/visitor/hourly"
-
-def takeInsights(id, mainWindow, mode):
-	if (mode == "month_peakhour"):
-		devices = insights + "?siteId=" + str(id) + "&startDate=" +  mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get()
-	elif (mainWindow.startdate_entry.get() == mainWindow.enddate_entry.get() and mode == "day_peakhour"):
-		devices = hourly + "/" + "?siteId=" + str(id) + "&date=" +  mainWindow.startdate_entry.get()
-	# else:
-	# 	devices = hourly + "?siteId=" + str(id) + "&date=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
-	answer = takeRequest(url, devices, username, password)
-	return answer
-
-########## OVER ANY DATE RANGE #########
-
-
-def takeCooords():
+	def takeCooords(self):
 		location = None
 		try:
-			location = takeRequest(urlCMX, "/api/location/v2/clients", usernameCMX, passwordCMX)
-			# print("got data")
+			location = self.takeRequest("/api/location/v2/clients")
 			# print(json.dumps(location, indent = 5))
-
 		except Exception as e:
 			print(e)
 		return (location)
+	
+	def takeSiteId(self):
+		data = self.takeRequest("/api/config/v1/sites")
+		id = data[0]["aesUId"]
+		return (id)
 
-# def takeConnectedDevices(id, url, password, username, mainWindow):
-# 	devices = visitors + mainWindow.day + "?siteId=" + str(id)
-# 	answer = takeRequest(url, devices, username, password)
-# 	# print(devices)
-# 	# print(answer)
-# 	return (answer)
-
-def takeConnectedDevices(id, url, password, username, mainWindow):
-	devices = connected + mainWindow.day + "?siteId=" + str(id)
-	answer = takeRequest(url, devices, username, password)
-	# print(connected)
-	# print(devices)
-	# print("HERE")
-	return (answer)
-
-def takeAllVisitors(id, url, password, username, mainWindow):
-	devices = visitors + mainWindow.day + "?siteId=" + str(id)
-	# print(devices)
-	answer = takeRequest(url, devices, username, password)
-	# print(answer)
-	return (answer)
-
-def takeRepeatVisitors(id, url, password, username, mode):
-	devices = "/api/presence/v1/repeatvisitors/" + mode + day + "?siteId=" + str(id)
-	# print(devices)
-	answer = takeRequest(url, devices, username, password)
-	# print(answer)
-	return (answer)
-
-def repeat(id, startDate, endDate):
-	if (startDate == endDate):
-		devices = "/api/presence/v1/repeatvisitors/hourly?siteId=" + str(id) + "&date=" + startDate
-	else:
-		devices = "/api/presence/v1/repeatvisitors/daily?siteId=" + str(id) + "&startDate=" + startDate + "&endDate=" + endDate # if period is more than a day
-	answer = takeRequest(url, devices, username, password)
-	return (answer)
-
-# def repeat(id, url, password, username, mainWindow, mode, date): ## if 3 days hours
-# 	if (mode == "daily"):
-# 		devices = daily_repeat + "?siteId=" + str(id) + "&startDate=" + mainWindow.startdate_entry.get() + "&endDate=" + mainWindow.enddate_entry.get() ##if period is more than 3 days
-# 	elif (mode == "hourly"):
-# 		devices = hourly_repeat + "?siteId=" + str(id) + "&date=" + date
-# 	answer = takeRequest(url, devices, username, password)
-# 	return (answer)
-
-# def takeDwellTime(id, url, password, username, mainWindow):
-# 	devices = dwell + mainWindow.day + "?siteId=" + str(id)
-# 	# print(devices)
-# 	answer = takeRequest(url, devices, username, password)
-# 	# print(answer)
-# 	return (list(answer.values()))
-
-# def takeavDwellTime(id, url, password, username, mainWindow):
-# 	devices = av_dwell + mainWindow.day + "?siteId=" + str(id)
-# 	# print(devices)
-# 	answer = takeRequest(url, devices, username, password)
-# 	# print(answer)
-# 	return (round(answer))
-
-def takePeakHour(id, url, password, username):
-	devices = peak_hour + "?siteId=" + str(id)
-	# print(devices)
-	answer = takeRequest(url, devices, username, password)
-	# print(answer)
-	return (answer)
-
-def takePeakHourVisitors(id, url, password, usernamem, mainWindow):
-	devices = hourly + mainWindow.day + "?siteId=" + str(id)
-	# print(devices)
-	answer = takeRequest(url, devices, username, password)
-	# print(answer)
-	return (answer)
-
-# "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
-
-# def testsumvisitors(id, url, password, usernamem, mainWindow):
-# 	devices = test + "?siteId=" + str(id) + "&startDate=" + mainWindow.start_date + "&endDate=" + mainWindow.end_date
-# 	# print(devices)
-# 	answer = takeRequest(url, devices, username, password)
-# 	print(answer)
-# 	# return (answer)
+	def takeRepeatVisitors(self, startDate, endDate):
+		if (startDate == endDate):
+			devices = "/api/presence/v1/repeatvisitors/hourly?siteId=" + str(self.id) + "&date=" + startDate
+		else:
+			devices = "/api/presence/v1/repeatvisitors/daily?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate # if period is more than a day
+		answer = self.takeRequest(devices)
+		return (answer)
