@@ -15,6 +15,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import numpy as np
 import matplotlib.pyplot as plt
+import graph
 
 class Window:
 	def graphic(self):
@@ -171,21 +172,24 @@ class Window:
 
 
 		self.presence_note = ttk.Notebook(self.tab4)
-		self.repeatVisitorsGraphTab = Frame(self.presence_note)
-		self.dwell = Frame(self.presence_note)
-		self.proximity = Frame(self.presence_note)
+		self.repeatVisitorsGraphTab = Frame(master=self.presence_note)
+		self.dwellTimeGraphTab = Frame(self.presence_note)
+		self.proximityGraphTab = Frame(self.presence_note)
 
 		self.repeatVisitorsGraphTab.grid(row = 0, column = 0)
-		self.dwell.grid(row = 0, column = 1)
-		self.proximity.grid(row = 0, column = 2)
+		self.dwellTimeGraphTab.grid(row = 0, column = 1)
+		self.proximityGraphTab.grid(row = 0, column = 2)
 
 		self.presence_note.add(self.repeatVisitorsGraphTab, text='Repeat Visitors')
-		self.presence_note.add(self.dwell, text='Dwell Time')
-		self.presence_note.add(self.proximity, text='Proximity')
+		self.presence_note.add(self.dwellTimeGraphTab, text='Dwell Time')
+		self.presence_note.add(self.proximityGraphTab, text='Proximity')
 
+		self.repeatVisitorsGraph = graph.Graph(self.repeatVisitorsGraphTab, 'Repeat Visitors')
+		self.dwellTimeGraph = graph.Graph(self.dwellTimeGraphTab, 'Dwell Time')
+		self.proximityGraph = graph.Graph(self.proximityGraphTab, 'Proximity')
 		self.presence_note.place(x = 100, y = 270)
 
-		# self.presence_note.bind("<<NotebookTabChanged>>", self.on_note_selected)
+		# self.presence_note.bind("<<NotebookTabChanged>>", self.graph.changeTab) 	# OSAMOILE TODO: bind to tabs switching
 
 		#### MAC ADRESS ####
 		# self.MACaddress = StringVar()
@@ -296,6 +300,7 @@ class Window:
 		self.button = Button(self.map_tab, text = "search", command = self.click)
 		self.button.place(x = 1670, y = 120)
 
+		# TODO: remove mac address
 		self.Mac = Label(self.map_tab, text = "MAC Address:", font = "Times 26", fg = '#666699')
 		self.Mac.place(x = 1500, y = 170)
 		self.Ip = Label(self.map_tab, text = "IP Address:", font = "Times 26", fg = '#666699')
@@ -527,12 +532,19 @@ class Window:
 		self.peak_hour_label()
 		self.conversion_rate_label()
 
+		self.repeatVisitorsGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
+		self.dwellTimeGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
+		self.proximityGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
+
 	# def on_note_selected(self, event):
 	# 	selected_tab = event.widget.select()
 	# 	tab_text = event.widget.tab(selected_tab, "text")
-
+	# 	self.presence_note.tab(self.presence_note.select(), "text")
 	# 	if (tab_text == "Repeat Visitors"):
-	# 		self.graphic()
+	# 		self.graph = graph.Graph(self.repeatVisitorsGraphTab, tab_text)
+	# 	elif (tab_text == "")
+	# 	self.graph.show(self.startdate_entry.get(), self.enddate_entry.get())
+	# 	print(self.request.takeDwellTimeGraph(self.startdate_entry.get(), self.enddate_entry.get()))
 
 	def on_map_tab_selected(self, event, canvas1, canvas2, canvas3):
 		selected_tab = event.widget.select()
