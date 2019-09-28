@@ -1,5 +1,9 @@
 import requests
 import json
+import os
+from PIL import ImageTk, Image
+from PIL import ImageTk, Image
+import shutil
 
 class Request:
 	def __init__(self):
@@ -12,6 +16,7 @@ class Request:
 		self.password = "Passw0rd"
 
 		self.id = self.takeSiteId()
+		self.imgNames = []
 
 		self.connected = "/api/presence/v1/connected/total"
 		self.visitors = "/api/presence/v1/visitor/total"
@@ -36,7 +41,7 @@ class Request:
 		self.hourly = "/api/presence/v1/visitor/hourly"
 	
 	def takeRequest(self, restAPI):
-		if restAPI == "/api/location/v2/clients":
+		if restAPI == "/api/location/v2/clients" or restAPI == "/api/config/v1/maps":
 			endpoint = self.urlCMX + restAPI
 		else:
 			endpoint = self.url + restAPI
@@ -44,7 +49,7 @@ class Request:
 		# print("Try URL: " + endpoint)
 		data = None
 		try:
-			if restAPI == "/api/location/v2/clients":
+			if restAPI == "/api/location/v2/clients" or restAPI == "/api/config/v1/maps":
 				returnData = requests.request("GET", endpoint, auth=(self.usernameCMX, self.passwordCMX), verify=False)
 			else:
 				returnData = requests.request("GET", endpoint, auth=(self.username, self.password), verify=False)
@@ -126,3 +131,61 @@ class Request:
 			devices = "/api/presence/v1/repeatvisitors/daily?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate # if period is more than a day
 		answer = self.takeRequest(devices)
 		return (answer)
+
+	def getFloorImage(self):
+		mapdatajson = self.takeRequest("/api/config/v1/maps")
+		mapImages = []
+		try:
+			os.mkdir("./maps")
+			# TODO: remove /maps from git
+		except OSError:
+			print("Creation of the directory is failed")
+		# print(mapdatajson)
+		for campus in mapdatajson["campuses"]:
+			for building in campus["buildingList"]:
+				for floor in building["floorList"]:
+					mapImages.append(
+						{
+							"hierarchy" : campus["name"] + ">" + \
+							building["name"] + ">" + \
+							floor["name"],
+							"image" : floor["image"],
+							"gpsMarkers" : floor["gpsMarkers"]
+						}
+					)
+
+					endpoint = self.urlCMX + \
+					"/api/config/v1/maps/imagesource/" + \
+					floor["image"]["imageName"]
+
+					print("trying " + endpoint)
+					try:
+						response = requests.request("GET", endpoint, \
+						auth=(self.usernameCMX, self.passwordCMX), stream=True, verify=False)
+						print("Got Map")
+
+						with open("./maps/" + \
+						floor["image"]["imageName"], 'wb') as f:
+							self.imgNames.append(floor["image"]["imageName"])
+							response.raw.decode_content = True
+							shutil.copyfileobj(response.raw, f)
+					except Exception as e:
+						print(e)
+		# print (self.imgNames)
+		self.resizeImgs()
+
+	def resizeImgs(self):
+		width = 1280
+		height = 720
+
+		im1 = Image.open("maps/" + self.imgNames[0])
+		im5 = im1.resize((width, height), Image.ANTIALIAS)
+		im5.save("maps/1stFloor" + ".jpg")
+
+		im1 = Image.open("maps/" + self.imgNames[2])
+		im5 = im1.resize((width, height), Image.ANTIALIAS)
+		im5.save("maps/2ndFloor" + ".jpg")
+
+		im1 = Image.open("maps/" + self.imgNames[1])
+		im5 = im1.resize((width, height), Image.ANTIALIAS)
+		im5.save("maps/3rdFloor" + ".jpg")
