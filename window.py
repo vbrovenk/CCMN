@@ -4,59 +4,15 @@ import json
 from tkinter import *
 from tkcalendar import *
 from tkinter import ttk
-from PIL import ImageTk, Image
 
 from threading import Thread
 import datetime
-
+from PIL import ImageTk, Image
 import time
 import cisco
-
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
-import numpy as np
-import matplotlib.pyplot as plt
+import graph
 
 class Window:
-	def graphic(self):
-
-		data = self.request.takeRepeatVisitors(self.startdate_entry.get(), self.enddate_entry.get())
-		# print(data)
-
-		keys = list(data.keys())
-		daily = [data.get(hour).get('DAILY') for hour in keys]			# list of DAILY values for every hour
-		weekly = [data.get(hour).get('WEEKLY') for hour in keys]			# list of WEEKLY values for every hour
-		occasional = [data.get(hour).get('OCCASIONAL') for hour in keys]	# list of OCCASIONAL values for every hour
-		first_time = [data.get(hour).get('FIRST_TIME') for hour in keys]	# list of FIRST_TIME values for every hour
-		yesterday = [data.get(hour).get('YESTERDAY') for hour in keys]	# list of YESTERDAY values for every hour
-
-		xaxis = np.arange(len(keys)) # put bars side to side
-
-		fig, graph = plt.subplots(figsize=(10,5))
-		# TODO OSAMOILE: graph duplication
-		graph.bar(xaxis - 0.3, daily, width=0.15, label='DAILY')
-		graph.bar(xaxis - 0.15, weekly, width=0.15, label='WEEKLY')
-		graph.bar(xaxis, occasional, width=0.15, label='OCCASIONAL')
-		graph.bar(xaxis + 0.15, first_time, width=0.15, label='FIRST_TIME')
-		graph.bar(xaxis + 0.3, yesterday, width=0.15, label='YESTERDAY')
-
-
-
-
-		fig.legend(loc='upper right')
-		canvas = FigureCanvasTkAgg(fig, master=self.repeatVisitorsGraphTab) # TODO: master ? # place canvas in 4th bookmark
-		canvas.get_tk_widget().pack()
-
-		# OSAMOILE TODO: change x-axis
-		# OSAMOILE TODO: integrade with date fields
-		# OSAMOILE TODO: several days vs hourly
-
-		# TODO: Forecasting number of visitors (tomorrow)
-
-		# OSAMOILE TODO: session duration and the day of the week
-		#       number of connections and the day of the week
-		
-
 	def __init__(self):
 		self.x = 1965
 		self.y = 897
@@ -189,6 +145,8 @@ class Window:
 		self.proximity = Frame(self.presence_note)
 
 		self.repeatVisitorsGraphTab.grid(row = 0, column = 0)
+
+		self.graph = graph.Graph(self.repeatVisitorsGraphTab)
 		self.dwell.grid(row = 0, column = 1)
 		self.proximity.grid(row = 0, column = 2)
 
@@ -198,7 +156,7 @@ class Window:
 
 		self.presence_note.place(x = 100, y = 270)
 
-		# self.presence_note.bind("<<NotebookTabChanged>>", self.on_note_selected)
+		self.presence_note.bind("<<NotebookTabChanged>>", self.on_note_selected)
 
 		#### MAC ADRESS ####
 		# self.MACaddress = StringVar()
@@ -331,9 +289,6 @@ class Window:
 		self.Coords.place(x = 1500, y = 330)
 		self.Floor = Label(self.map_tab, text = "Floor: ", font = "Times 26", fg = '#666699')
 		self.Floor.place(x = 1500, y = 410)
-		# TODO: output floor
-		# TODO: "Not Found" error switching bookmarks
-		# OSAMOILE TODO ??? : one more notebook for floors
 	
 	def totalVisitors(self):
 		connected = self.request.takeTotalVisitors(self.startdate_entry.get(), self.enddate_entry.get(), "connected")
@@ -556,13 +511,15 @@ class Window:
 		self.dwell_time_label()
 		self.peak_hour_label()
 		self.conversion_rate_label()
+		self.graph.show(self.startdate_entry.get(), self.enddate_entry.get())
 
-	# def on_note_selected(self, event):
-	# 	selected_tab = event.widget.select()
-	# 	tab_text = event.widget.tab(selected_tab, "text")
 
-	# 	if (tab_text == "Repeat Visitors"):
-	# 		self.graphic()
+	def on_note_selected(self, event):
+		selected_tab = event.widget.select()
+		tab_text = event.widget.tab(selected_tab, "text")
+
+		if (tab_text == "Repeat Visitors"):
+			self.graph.show(self.startdate_entry.get(), self.enddate_entry.get())
 
 	def on_map_tab_selected(self, event, canvas1, canvas2, canvas3):
 		selected_tab = event.widget.select()
@@ -628,7 +585,6 @@ class Window:
 			# self.Coords.destroy()
 
 			self.change()
-			self.graphic()
 
 	def start(self):
 		# self.tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =self.canvas1, arg2 = self.canvas2, arg3 = self.canvas3: self.on_tab_selected(event, arg1, arg2, arg3))
