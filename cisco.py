@@ -1,6 +1,8 @@
 import requests
 import json
 
+# TODO: rename file to Request
+
 class Request:
 	def __init__(self):
 		self.urlCMX = "https://cisco-cmx.unit.ua"
