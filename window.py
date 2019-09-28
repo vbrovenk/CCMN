@@ -43,18 +43,6 @@ class Window:
 		# self.style.theme_use("yummy")
 
 		# #### NOTEBOOK ####
-		# self.tab1 = Frame(self.tab_control)
-		# self.tab2 = Frame(self.tab_control)
-		# self.tab3 = Frame(self.tab_control)
-
-		# self.tab1.pack()
-		# self.tab2.pack()
-		# self.tab3.pack()
-
-		# self.tab_control.add(self.tab1, text='1st Floor')
-		# self.tab_control.add(self.tab2, text='2nd Floor')
-		# self.tab_control.add(self.tab3, text='3rd Floor')
-
 		self.tab_control = ttk.Notebook(self.window)
 
 		self.map_tab = Frame(self.tab_control)
@@ -140,23 +128,24 @@ class Window:
 
 
 		self.presence_note = ttk.Notebook(self.tab4)
-		self.repeatVisitorsGraphTab = Frame(self.presence_note)
-		self.dwell = Frame(self.presence_note)
-		self.proximity = Frame(self.presence_note)
+		self.repeatVisitorsGraphTab = Frame(master=self.presence_note)
+		self.dwellTimeGraphTab = Frame(self.presence_note)
+		self.proximityGraphTab = Frame(self.presence_note)
 
 		self.repeatVisitorsGraphTab.grid(row = 0, column = 0)
-
-		self.graph = graph.Graph(self.repeatVisitorsGraphTab)
-		self.dwell.grid(row = 0, column = 1)
-		self.proximity.grid(row = 0, column = 2)
+		self.dwellTimeGraphTab.grid(row = 0, column = 1)
+		self.proximityGraphTab.grid(row = 0, column = 2)
 
 		self.presence_note.add(self.repeatVisitorsGraphTab, text='Repeat Visitors')
-		self.presence_note.add(self.dwell, text='Dwell Time')
-		self.presence_note.add(self.proximity, text='Proximity')
+		self.presence_note.add(self.dwellTimeGraphTab, text='Dwell Time')
+		self.presence_note.add(self.proximityGraphTab, text='Proximity')
 
+		self.repeatVisitorsGraph = graph.Graph(self.repeatVisitorsGraphTab, 'Repeat Visitors')
+		self.dwellTimeGraph = graph.Graph(self.dwellTimeGraphTab, 'Dwell Time')
+		self.proximityGraph = graph.Graph(self.proximityGraphTab, 'Proximity')
 		self.presence_note.place(x = 100, y = 270)
 
-		self.presence_note.bind("<<NotebookTabChanged>>", self.on_note_selected)
+		# self.presence_note.bind("<<NotebookTabChanged>>", self.graph.changeTab) 	# OSAMOILE TODO: bind to tabs switching
 
 		#### MAC ADRESS ####
 		# self.MACaddress = StringVar()
@@ -177,13 +166,11 @@ class Window:
 
 
 	def give_info(self):
-		# TODO: remove self's
 		coords = self.request.takeCooords()
 		# print(json.dumps(coords, indent=5))
 		for device in coords:
-			if (self.message.get() == device["macAddress"]):
+			if (self.message.get() == device["macAddress"] or self.message.get() == device["userName"]):
 				self.MACaddress = device["macAddress"]
-				# TODO: xlogin - searching: get and display
 				self.detectingControllers = device["detectingControllers"]
 				self.floor = device["mapInfo"]["mapHierarchyString"].split('>')[2]
 				self.ssid = device["ssId"]
@@ -200,48 +187,36 @@ class Window:
 		self.entry.delete(0, END)
 
 	def click(self):
-		# self.a1.destroy()
-		# self.a2.destroy()
-		# self.a3.destroy()
 		self.a1["text"] = ""
 		self.a2["text"] = ""
 		self.a3["text"] = ""
 		self.a4["text"] = ""
 		if (len(self.message.get()) > 0):
 			if self.give_info() == True:
-
-				# self.a1 = Label(self.map_tab, text=self.MACaddress, font="Times 18", fg='#808080')
 				self.a1["text"] = self.MACaddress
 				self.a1.place(x = 1500, y = 220)
-				# self.a2 = Label(self.map_tab, text=self.detectingControllers, font="Times 18", fg='#808080')
+
 				self.a2["text"] = self.detectingControllers
 				self.a2.place(x = 1500, y = 300)
-				# self.a3 = Label(self.map_tab, text="X: " + self.coordX + " Y: " + self.coordY, font="Times 18", fg='#808080')
+
 				self.a3["text"] = "X = " + self.coordX + " Y = " + self.coordY
 				self.a3.place(x = 1500, y = 370)
 
 				self.a4["text"] = self.floor
 				self.a4.place(x = 1500, y = 440)
 
-				# answer = Label(self.window, text = self.floor)
-				# answer2 = Label(self.window, text = self.manufacturer)
-				
-				# answer.place(x = 1300, y = 150)
-				# answer2.place(x = 1300, y = 170)
-
+				self.clear()
 				# print("True")
 			else:
-				# self.a1 = Label(self.map_tab, text = "Not Found", font="Times 26", fg='#b30000')
 				self.a1["text"] = "Not Found"
 				self.a1.place(x = 1300, y = 160)
 				# print("False")
-				# self.clear()
+				self.clear()
 		else:
-			# self.a1 = Label(self.map_tab, text = "Empty field", font="Times 26", fg='#b30000')
 			self.a1["text"] = "Empty Field"
 			self.a1.place(x = 1300, y = 160)
 			# print("False")
-			# self.clear()
+			self.clear()
 
 	def printDevices(self, canvas, needFloor):
 		previous_info = []
@@ -281,6 +256,7 @@ class Window:
 		self.button = Button(self.map_tab, text = "search", command = self.click)
 		self.button.place(x = 1670, y = 120)
 
+		# TODO: remove mac address
 		self.Mac = Label(self.map_tab, text = "MAC Address:", font = "Times 26", fg = '#666699')
 		self.Mac.place(x = 1500, y = 170)
 		self.Ip = Label(self.map_tab, text = "IP Address:", font = "Times 26", fg = '#666699')
@@ -511,15 +487,20 @@ class Window:
 		self.dwell_time_label()
 		self.peak_hour_label()
 		self.conversion_rate_label()
-		self.graph.show(self.startdate_entry.get(), self.enddate_entry.get())
 
+		self.repeatVisitorsGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
+		self.dwellTimeGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
+		self.proximityGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
 
-	def on_note_selected(self, event):
-		selected_tab = event.widget.select()
-		tab_text = event.widget.tab(selected_tab, "text")
-
-		if (tab_text == "Repeat Visitors"):
-			self.graph.show(self.startdate_entry.get(), self.enddate_entry.get())
+	# def on_note_selected(self, event):
+	# 	selected_tab = event.widget.select()
+	# 	tab_text = event.widget.tab(selected_tab, "text")
+	# 	self.presence_note.tab(self.presence_note.select(), "text")
+	# 	if (tab_text == "Repeat Visitors"):
+	# 		self.graph = graph.Graph(self.repeatVisitorsGraphTab, tab_text)
+	# 	elif (tab_text == "")
+	# 	self.graph.show(self.startdate_entry.get(), self.enddate_entry.get())
+	# 	print(self.request.takeDwellTimeGraph(self.startdate_entry.get(), self.enddate_entry.get()))
 
 	def on_map_tab_selected(self, event, canvas1, canvas2, canvas3):
 		selected_tab = event.widget.select()
@@ -551,41 +532,13 @@ class Window:
 		selected_tab = event.widget.select()
 		tab_text = event.widget.tab(selected_tab, "text")
 		
-		# if tab_text != "Presence" and self.detector == False:
-		# 	self.createFields()
-		# 	self.detector = True
-
-		# thread1 = Thread(target=self.printDevices, args=(self.canvas1, "1st_Floor",), daemon=True)
-
-		# if tab_text == "1st Floor":
-		# 	self.thread_Floors = {"1st_Floor":True, "2nd_Floor":False, "3rd_Floor":False}
-		# 	thread1.start()
-
-		# if tab_text == "2nd Floor":
-		# 	self.thread_Floors = {"1st_Floor":False, "2nd_Floor":True, "3rd_Floor":False}
-		# 	thread2 = Thread(target=self.printDevices, args=(self.canvas2, "2nd_Floor",), daemon=True)
-		# 	thread2.start()
-		# if tab_text == "3rd Floor":
-		# 	self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":True}
-		# 	thread3 = Thread(target=self.printDevices, args=(self.canvas3, "3rd_Floor",), daemon=True)
-		# 	thread3.start()
-
 		if (tab_text == "Map"):
 			self.map_note.bind("<<NotebookTabChanged>>", lambda event, arg1 =self.canvas1, arg2 = self.canvas2, arg3 = self.canvas3: self.on_map_tab_selected(event, arg1, arg2, arg3))
 
 		if (tab_text == "Presence"):
 			self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
-			# self.detector = False
-
-			# self.label.destroy()
-			# self.button.destroy()
-			# self.entry.destroy()
-			# self.Mac.destroy()
-			# self.Ip.destroy()
-			# self.Coords.destroy()
-
 			self.change()
 
 	def start(self):
-		# self.tab_control.bind("<<NotebookTabChanged>>", lambda event, arg1 =self.canvas1, arg2 = self.canvas2, arg3 = self.canvas3: self.on_tab_selected(event, arg1, arg2, arg3))
 		self.tab_control.bind("<<NotebookTabChanged>>", self.on_tab_selected)
+		self.window.mainloop()
