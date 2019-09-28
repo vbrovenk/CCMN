@@ -129,8 +129,8 @@ class Window:
 
 		self.presence_note = ttk.Notebook(self.tab4)
 		self.repeatVisitorsGraphTab = Frame(master=self.presence_note)
-		self.dwellTimeGraphTab = Frame(self.presence_note)
-		self.proximityGraphTab = Frame(self.presence_note)
+		self.dwellTimeGraphTab = Frame(master=self.presence_note)
+		self.proximityGraphTab = Frame(master=self.presence_note)
 
 		self.repeatVisitorsGraphTab.grid(row = 0, column = 0)
 		self.dwellTimeGraphTab.grid(row = 0, column = 1)

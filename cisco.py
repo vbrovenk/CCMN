@@ -2,7 +2,6 @@ import requests
 import json
 import os
 from PIL import ImageTk, Image
-from PIL import ImageTk, Image
 import shutil
 
 # TODO: rename file to request
