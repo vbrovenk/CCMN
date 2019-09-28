@@ -1,4 +1,5 @@
-import cisco
+from cisco import Request
+
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import numpy as np
@@ -8,7 +9,7 @@ class Graph:
 
 	def __init__(self, tab, tabName):
 		self.canvas = None
-		self.request = cisco.Request()
+		self.request = Request()
 		self.tab = tab
 		self.tabName = tabName
 
@@ -20,10 +21,8 @@ class Graph:
 
 	def show(self, startDate, endDate):
 
-		data = None
 		fig, graph = plt.subplots(figsize=(10,5))
 
-		# OSAMOILE TODO: change x-axis
 		# OSAMOILE TODO: change colors and legend similar to https://cisco-presence.unit.ua/presence/
 		# OSAMOILE TODO: resolve crash with mouse scroll
 
@@ -32,28 +31,28 @@ class Graph:
 			keys = list(data.keys())
 			xaxis = np.arange(len(keys)) # put bars side to side
 
-			daily = [data.get(hour).get('DAILY') for hour in keys]				# TODO: hour -> key
-			weekly = [data.get(hour).get('WEEKLY') for hour in keys]
-			occasional = [data.get(hour).get('OCCASIONAL') for hour in keys]
-			first_time = [data.get(hour).get('FIRST_TIME') for hour in keys]
-			yesterday = [data.get(hour).get('YESTERDAY') for hour in keys]
+			DAILY = [data.get(key).get('DAILY') for key in keys]
+			WEEKLY = [data.get(key).get('WEEKLY') for key in keys]
+			OCCASIONAL = [data.get(key).get('OCCASIONAL') for key in keys]
+			FIRST_TIME = [data.get(key).get('FIRST_TIME') for key in keys]
+			YESTERDAY = [data.get(key).get('YESTERDAY') for key in keys]
 
-			graph.bar(xaxis - 0.3, daily, width=0.15, label='DAILY')
-			graph.bar(xaxis - 0.15, weekly, width=0.15, label='WEEKLY')
-			graph.bar(xaxis, occasional, width=0.15, label='OCCASIONAL')
-			graph.bar(xaxis + 0.15, first_time, width=0.15, label='FIRST_TIME')
-			graph.bar(xaxis + 0.3, yesterday, width=0.15, label='YESTERDAY')
+			graph.bar(xaxis - 0.3, DAILY, width=0.15, label='DAILY')
+			graph.bar(xaxis - 0.15, WEEKLY, width=0.15, label='WEEKLY')
+			graph.bar(xaxis, OCCASIONAL, width=0.15, label='OCCASIONAL')
+			graph.bar(xaxis + 0.15, FIRST_TIME, width=0.15, label='FIRST_TIME')
+			graph.bar(xaxis + 0.3, YESTERDAY, width=0.15, label='YESTERDAY')
 
 		elif (self.tabName == 'Dwell Time'):
 			data = self.request.takeData('dwell', startDate, endDate)
 			keys = list(data.keys())
 			xaxis = np.arange(len(keys)) # put bars side to side
 
-			FIVE_TO_THIRTY_MINUTES = [data.get(hour).get('FIVE_TO_THIRTY_MINUTES') for hour in keys]
-			THIRTY_TO_SIXTY_MINUTES = [data.get(hour).get('THIRTY_TO_SIXTY_MINUTES') for hour in keys]
-			ONE_TO_FIVE_HOURS = [data.get(hour).get('ONE_TO_FIVE_HOURS') for hour in keys]
-			FIVE_TO_EIGHT_HOURS = [data.get(hour).get('FIVE_TO_EIGHT_HOURS') for hour in keys]
-			EIGHT_PLUS_HOURS = [data.get(hour).get('EIGHT_PLUS_HOURS') for hour in keys]
+			FIVE_TO_THIRTY_MINUTES = [data.get(key).get('FIVE_TO_THIRTY_MINUTES') for key in keys]
+			THIRTY_TO_SIXTY_MINUTES = [data.get(key).get('THIRTY_TO_SIXTY_MINUTES') for key in keys]
+			ONE_TO_FIVE_HOURS = [data.get(key).get('ONE_TO_FIVE_HOURS') for key in keys]
+			FIVE_TO_EIGHT_HOURS = [data.get(key).get('FIVE_TO_EIGHT_HOURS') for key in keys]
+			EIGHT_PLUS_HOURS = [data.get(key).get('EIGHT_PLUS_HOURS') for key in keys]
 
 			graph.bar(xaxis - 0.3, FIVE_TO_THIRTY_MINUTES, width=0.15, label='FIVE_TO_THIRTY_MINUTES')
 			graph.bar(xaxis - 0.15, THIRTY_TO_SIXTY_MINUTES, width=0.15, label='THIRTY_TO_SIXTY_MINUTES')
@@ -77,13 +76,13 @@ class Graph:
 			graph.bar(xaxis + 0.15, PASSERBY, width=0.15, label='PASSERBY')
 
 		if (self.canvas):
-			self.canvas.get_tk_widget().destroy()
-
+			self.canvas.get_tk_widget().destroy() # othervise graphics are stacking
+		graph.set_xticks(xaxis)
+		graph.set_xticklabels(keys, rotation=45, fontsize=7)
 		fig.legend(loc='upper right')
 		self.canvas = FigureCanvasTkAgg(fig, master=self.tab)
 		self.canvas.get_tk_widget().pack()
 
 		# TODO: Forecasting number of visitors (tomorrow)
 
-		# OSAMOILE TODO: session duration and the day of the week
-		#       number of connections and the day of the week
+		# OSAMOILE TODO: pie chart session duration and the day of the week
