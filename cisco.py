@@ -1,12 +1,14 @@
 import requests
 import json
 
+# TODO: rename file to request
+
 class Request:
 	def __init__(self):
 		self.urlCMX = "https://cisco-cmx.unit.ua"
 		self.usernameCMX = "RO"
 		self.passwordCMX = "just4reading"
-
+		# TODO: check crashes with incorrect credentials
 		self.url = "https://cisco-presence.unit.ua"
 		self.username = "RO"
 		self.password = "Passw0rd"
@@ -18,19 +20,8 @@ class Request:
 		self.passerby = "/api/presence/v1/passerby/total"
 		self.unique = "/api/presence/v1/visitor/count"
 
-		self.daily_connected_graph = "/api/presence/v1/connected/daily"
-		self.daily_visitors_graph = "/api/presence/v1/visitor/daily"
-		self.daily_passerby_graph = "/api/presence/v1/passerby/daily"
-
-		self.hourly_connected_graph = "/api/presence/v1/connected/hourly"
-		self.hourly_visitors_graph = "/api/presence/v1/visitor/hourly"
-		self.hourly_passerby_graph = "/api/presence/v1/passerby/hourly"
-
 		self.dwell = "/api/presence/v1/dwell/count"
 		self.average_dwell = "/api/presence/v1/dwell/average"
-
-		self.daily_dwelltime_graph = "/api/presence/v1/dwell/daily"
-		self.hourly_dwelltime_graph = "/api/presence/v1/dwell/hourly"
 
 		self.insights = "/api/presence/v1/insights"
 		self.hourly = "/api/presence/v1/visitor/hourly"
@@ -66,20 +57,6 @@ class Request:
 		answer = self.takeRequest(devices)
 		return answer
 
-	def takeTotalVisitorsGraph(self, startDate, endDate):
-		answer = []
-		if (startDate == endDate):
-			connected = self.hourly_connected_graph + "?siteId=" + str(self.id) + "&date=" + startDate
-			visitors = self.hourly_visitors_graph + "?siteId=" + str(self.id) + "&date=" + startDate
-			passerby = self.hourly_passerby_graph + "?siteId=" + str(self.id) + "&date=" + startDate
-		elif (mode == "hourly"):
-			connected = self.daily_connected_graph + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
-			visitors = self.daily_visitors_graph + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
-			passerby = self.daily_passerby_graph + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
-		answer.append(self.takeRequest(connected))
-		answer.append(self.takeRequest(visitors))
-		answer.append(self.takeRequest(passerby))
-		return answer
 
 	def takeDwellTime(self, startDate, endDate, mode):
 		if (mode == "dwell"):
@@ -89,13 +66,6 @@ class Request:
 		answer = self.takeRequest(devices)
 		return answer
 
-	def takeDwellTimeGraph(self, startDate, endDate):
-		if (startDate == endDate):
-			devices = self.hourly_dwelltime_graph + "?siteId=" + str(self.id) + "&date=" + startDate
-		else:
-			devices = self.daily_dwelltime_graph + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
-		answer = self.takeRequest(devices)
-		return answer
 
 	def takeInsights(self, startDate, endDate, mode):
 		if (mode == "month_peakhour"):
@@ -114,6 +84,13 @@ class Request:
 			print(e)
 		return (location)
 	
+	def takeData(self, dataType, startDate, endDate):
+		if (startDate == endDate):
+			request = '/api/presence/v1/' + dataType + '/hourly?siteId=' + str(self.id) + '&date=' + startDate
+		else:
+			request = '/api/presence/v1/' + dataType + '/daily?siteId=' + str(self.id) + '&startDate=' + startDate + '&endDate=' + endDate # if period is more than a day
+		return(self.takeRequest(request))
+
 	def takeSiteId(self):
 		data = self.takeRequest("/api/config/v1/sites")
 		id = data[0]["aesUId"]
