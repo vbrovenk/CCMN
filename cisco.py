@@ -25,7 +25,7 @@ class Request:
 		self.unique = "/api/presence/v1/visitor/count"
 
 		self.dwell = "/api/presence/v1/dwell/count"
-		self.average_dwell = "/api/presence/v1/dwell/average"
+		self.dwell_average = "/api/presence/v1/dwell/average"
 
 		self.insights = "/api/presence/v1/insights"
 		self.hourly = "/api/presence/v1/visitor/hourly"
@@ -65,8 +65,8 @@ class Request:
 	def takeDwellTime(self, startDate, endDate, mode):
 		if (mode == "dwell"):
 			devices = self.dwell + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
-		elif (mode == "average_dwell"):
-			devices = self.average_dwell + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+		elif (mode == "dwell_average"):
+			devices = self.dwell_average + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
 		answer = self.takeRequest(devices)
 		return answer
 
@@ -75,7 +75,7 @@ class Request:
 		if (mode == "month_peakhour"):
 			devices = self.insights + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
 		elif (startDate == endDate and mode == "day_peakhour"):
-			devices = self.hourly + "/" + "?siteId=" + str(self.id) + "&date=" + startDate
+			devices = self.hourly + "?siteId=" + str(self.id) + "&date=" + startDate
 		answer = self.takeRequest(devices)
 		return answer
 
@@ -99,14 +99,6 @@ class Request:
 		data = self.takeRequest("/api/config/v1/sites")
 		id = data[0]["aesUId"]
 		return (id)
-
-	def takeRepeatVisitors(self, startDate, endDate):
-		if (startDate == endDate):
-			devices = "/api/presence/v1/repeatvisitors/hourly?siteId=" + str(self.id) + "&date=" + startDate
-		else:
-			devices = "/api/presence/v1/repeatvisitors/daily?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate # if period is more than a day
-		answer = self.takeRequest(devices)
-		return (answer)
 
 	def getFloorImage(self):
 		mapdatajson = self.takeRequest("/api/config/v1/maps")

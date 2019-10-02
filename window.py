@@ -288,8 +288,8 @@ class Window:
 	
 	def dwellTime(self):
 		dwell = self.request.takeDwellTime(self.startdate_entry.get(), self.enddate_entry.get(), "dwell")
-		average_dwell = self.request.takeDwellTime(self.startdate_entry.get(), self.enddate_entry.get(), "average_dwell")
-		return [list(dwell.values()), round(average_dwell)]
+		dwell_average = self.request.takeDwellTime(self.startdate_entry.get(), self.enddate_entry.get(), "dwell_average")
+		return [list(dwell.values()), round(dwell_average)]
 	
 	def dwellTimeGraph(self):
 		# if (self.startdate_entry.get() == self.enddate_entry.get()):
@@ -302,31 +302,63 @@ class Window:
 	def makeForecast(self):
 		period = (datetime.datetime.today() - relativedelta(months = 2)).strftime("%Y-%m-%d")
 		tommorow = (datetime.datetime.today() + datetime.timedelta(days = 1)).strftime("%A")
-		# print(period)
+
 		connected = self.request.takeData('connected', period, self.enddate_entry.get())
-		print (connected)
 		visitors = self.request.takeData('visitor', period, self.enddate_entry.get())
-		# print (visitors)
 		passerby = self.request.takeData('passerby', period, self.enddate_entry.get())
+		dwell = self.request.takeData('dwell', period, self.enddate_entry.get())
+		repeat = self.request.takeData('repeatvisitors', period, self.enddate_entry.get())
+		
+		forecast = dict()
 		con_list = []
 		vis_list = []
 		pass_list = []
+		dwell_list = []
+		repeat_list = []
+
 		for i in connected:
 			splited = str(i).split("-")
-			# print (splited)
 			date = datetime.date(int(splited[0]), int(splited[1]), int(splited[2]))
 			if date.strftime("%A") == tommorow:
 				con_list.append(connected[i])
 				vis_list.append(visitors[i])
 				pass_list.append(passerby[i])
-				# print(connected[i])
-		for i in con_list:
-			con_result = sum(con_list) / len(con_list)
-			vis_result = sum(vis_list) / len(vis_list)
-			pass_result = sum(pass_list) / len(pass_list)
+				dwell_list.append(dwell[i])
+				repeat_list.append(repeat[i])
+
+		forecast['CONNECTED'] = round(sum(con_list) / len(con_list))
+		forecast['VISITORS'] = round(sum(vis_list) / len(vis_list))
+		forecast['PASSERBY'] = round(sum(pass_list) / len(pass_list))
+
+		five_to_thirty = [i['FIVE_TO_THIRTY_MINUTES'] for i in dwell_list]
+		thirty_to_sixty = [i['THIRTY_TO_SIXTY_MINUTES'] for i in dwell_list]
+		one_to_five = [i['ONE_TO_FIVE_HOURS'] for i in dwell_list]
+		five_to_eight = [i['FIVE_TO_EIGHT_HOURS'] for i in dwell_list]
+		eight_plus = [i['EIGHT_PLUS_HOURS'] for i in dwell_list]
+
+		forecast['FIVE_TO_THIRTY_MINUTES'] = round(sum(five_to_thirty) / len(five_to_thirty))
+		forecast['THIRTY_TO_SIXTY_MINUTES'] = round(sum(thirty_to_sixty) / len(thirty_to_sixty))
+		forecast['ONE_TO_FIVE_HOURS'] = round(sum(one_to_five) / len(one_to_five))
+		forecast['FIVE_TO_EIGHT_HOURS'] = round(sum(five_to_eight) / len(five_to_eight))
+		forecast['EIGHT_PLUS_HOURS'] = round(sum(eight_plus) / len(eight_plus))
+
+		daily = [i['DAILY'] for i in repeat_list]
+		weekly = [i['WEEKLY'] for i in repeat_list]
+		occasional = [i['OCCASIONAL'] for i in repeat_list]
+		first_time = [i['FIRST_TIME'] for i in repeat_list]
+		yesterday =[i['YESTERDAY'] for i in repeat_list]
+
+		forecast['DAILY'] = round(sum(daily) / len(daily))
+		forecast['WEEKLY'] = round(sum(weekly) / len(weekly))
+		forecast['OCCASIONAL'] = round(sum(occasional) / len(occasional))
+		forecast['FIRST_TIME'] = round(sum(first_time) / len(first_time))
+		forecast['YESTERDAY'] = round(sum(yesterday) / len(yesterday))
+		# print(five_to_thirty, thirty_to_sixty, one_to_five, five_to_eight, eight_plus)
+		# print(forecast)
 		# print (con_result , vis_result, pass_result)
 		# print (passerby)
 		# print(tommorow)
+		return (forecast)
 
 
 
