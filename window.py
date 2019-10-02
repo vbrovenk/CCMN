@@ -7,6 +7,7 @@ from tkinter import ttk
 
 from threading import Thread
 import datetime
+from dateutil.relativedelta import *
 from PIL import ImageTk, Image
 import time
 import cisco
@@ -294,6 +295,37 @@ class Window:
 		dwell = self.request.takeDwellTimeGraph(self.startdate_entry.get(), self.enddate_entry.get()) ## mb no need in this func
 		return dwell
 
+	def makeForecast(self):
+		period = (datetime.datetime.today() - relativedelta(months = 2)).strftime("%Y-%m-%d")
+		tommorow = (datetime.datetime.today() + datetime.timedelta(days = 1)).strftime("%A")
+		# print(period)
+		connected = self.request.takeData('connected', period, self.enddate_entry.get())
+		print (connected)
+		visitors = self.request.takeData('visitor', period, self.enddate_entry.get())
+		# print (visitors)
+		passerby = self.request.takeData('passerby', period, self.enddate_entry.get())
+		con_list = []
+		vis_list = []
+		pass_list = []
+		for i in connected:
+			splited = str(i).split("-")
+			# print (splited)
+			date = datetime.date(int(splited[0]), int(splited[1]), int(splited[2]))
+			if date.strftime("%A") == tommorow:
+				con_list.append(connected[i])
+				vis_list.append(visitors[i])
+				pass_list.append(passerby[i])
+				# print(connected[i])
+		for i in con_list:
+			con_result = sum(con_list) / len(con_list)
+			vis_result = sum(vis_list) / len(vis_list)
+			pass_result = sum(pass_list) / len(pass_list)
+		# print (con_result , vis_result, pass_result)
+		# print (passerby)
+		# print(tommorow)
+
+
+
 	def peakHour(self):
 		peakhour = None
 		peakhour_visitors = None
@@ -491,6 +523,8 @@ class Window:
 		self.repeatVisitorsGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
 		self.dwellTimeGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
 		self.proximityGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
+
+		self.makeForecast()
 
 	# def on_note_selected(self, event):
 	# 	selected_tab = event.widget.select()
