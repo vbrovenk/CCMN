@@ -104,7 +104,7 @@ class Request:
 	def takeSiteId(self):
 		data = self.takeRequest("/api/config/v1/sites")
 		if data is not None:
-		id = data[0]["aesUId"]
+			id = data[0]["aesUId"]
 			logging.info("Successfuly took sites id")
 		return (id)
 

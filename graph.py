@@ -6,9 +6,6 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import calendar
 
-# SBASNAKA TODO: current month as default
-# SBASNAKA TODO: startDate is week ago as default
-
 class Graph:
 
 	def __init__(self, request, tab, tabName):

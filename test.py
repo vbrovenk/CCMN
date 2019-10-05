@@ -12,7 +12,7 @@ def main():
 	# test = cisco.Request()
 	# test.getFloorImage() # TODO SBASNAKA: just test, but need to do it before passing project!!!
 	mainWindow = Window(Request())
-	mainWindow.start()
+	mainWindow.start()		
 
 if __name__ == "__main__":
 	main()

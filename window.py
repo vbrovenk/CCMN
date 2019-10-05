@@ -1,5 +1,5 @@
 import graph
-
+from dateutil.relativedelta import relativedelta
 import json
 from tkinter import *
 from tkcalendar import *
@@ -74,14 +74,15 @@ class Window:
 		#### PRESENCE FRAME ####
 
 		today = datetime.datetime.today().strftime("%Y-%m-%d")
+		week_ago = (datetime.datetime.today() - relativedelta(days = 7)).strftime("%Y-%m-%d")
 		self.month_year = today.split("-")
 
 		calendar_button = Button(self.presence_tab, text = "Choose Date Range", command = self.create_calendar)
 		calendar_button.place(x = 1600, y = 40)
-
+		
 		self.startdate_entry = Entry(self.presence_tab)
 		self.startdate_entry.place(x = 1600, y = 65)
-		self.startdate_entry.insert(0, today)
+		self.startdate_entry.insert(0, week_ago)
 
 		start_label = Label(self.presence_tab, text = "Start Date")
 		start_label.place(x = 1525, y = 68)
