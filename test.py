@@ -1,5 +1,3 @@
-import cisco
-
 import urllib3
 from window import Window
 

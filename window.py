@@ -1,7 +1,6 @@
-import cisco
+from request import Request
 import graph
 
-import requests
 import json
 from tkinter import *
 from tkcalendar import *
@@ -19,61 +18,41 @@ class Window:
 		self.x = 1965
 		self.y = 897
 
-		self.request = cisco.Request()
+		self.request = Request()
 
 		self.window = Tk()
 		self.window.title("CCMN")
 		self.window.geometry(str(self.x) + "x" + str(self.y))
 
-		self.style = ttk.Style()
-
-		st = ttk.Style()
-
-		self.style.theme_create( "yummy", parent="alt", 
-		settings=
-		{
-			"TNotebook": {"configure": {"tabmargins": [10, 10, 0, 20] } },
-			"TNotebook.Tab": {
-			"configure": {"padding": [50, 10], "background": 'white' },
-			"map":       {"background": [("selected", 'cyan')],
-			"expand": [("selected", [0, 0, 0, 0])] } } 
-		})
-		st.configure("my.Calendar",
-			font = "Times 20")
-
-		# self.style.theme_use("yummy") # SBASNAKA TODO: finish or remove
-
 		#### NOTEBOOK ####
-		self.tab_control = ttk.Notebook(self.window)
+		self.main_notebook = ttk.Notebook(self.window)
 
-		self.map_tab = Frame(self.tab_control)
-		# SBASNAKA TODO: change tab4 name to more understandable
-		self.tab4 = Frame(self.tab_control)
+		self.map_tab = Frame(self.main_notebook)
+		self.presence_tab = Frame(self.main_notebook)
 
 		self.map_tab.pack()
-		self.tab4.pack()
+		self.presence_tab.pack()
 
-		self.tab_control.add(self.map_tab, text = "Map")
-		self.tab_control.add(self.tab4, text = "Presence")
+		self.main_notebook.add(self.map_tab, text = "Map")
+		self.main_notebook.add(self.presence_tab, text = "Presence")
 
-		self.tab_control.pack(expand=1, fill = BOTH)
+		self.main_notebook.pack(expand=1, fill = BOTH)
 
+		self.map_notebook = ttk.Notebook(self.map_tab)
 
-		self.map_note = ttk.Notebook(self.map_tab)
-
-		self.first_floor = Frame(self.map_note)
-		self.second_floor = Frame(self.map_note)
-		self.third_floor = Frame(self.map_note)
+		self.first_floor = Frame(self.map_notebook)
+		self.second_floor = Frame(self.map_notebook)
+		self.third_floor = Frame(self.map_notebook)
 
 		self.first_floor.pack()
 		self.second_floor.pack()
 		self.third_floor.pack()
 
-		self.map_note.add(self.first_floor, text = "1st Floor")
-		self.map_note.add(self.second_floor, text = "2nd Floor")
-		self.map_note.add(self.third_floor, text = "3rd Floor")
+		self.map_notebook.add(self.first_floor, text = "1st Floor")
+		self.map_notebook.add(self.second_floor, text = "2nd Floor")
+		self.map_notebook.add(self.third_floor, text = "3rd Floor")
 
-		self.map_note.place(x = 0, y = 0)
+		self.map_notebook.place(x = 0, y = 0)
 
 		#### CANVAS ####
 		# 1st
@@ -97,27 +76,27 @@ class Window:
 
 		today = datetime.datetime.today().strftime("%Y-%m-%d")
 
-		calendar_button = Button(self.tab4, text = "Choose Date Range", command = self.create_calendar)
+		calendar_button = Button(self.presence_tab, text = "Choose Date Range", command = self.create_calendar)
 		calendar_button.place(x = 1600, y = 40)
 
-		self.startdate_entry = Entry(self.tab4)
+		self.startdate_entry = Entry(self.presence_tab)
 		self.startdate_entry.place(x = 1600, y = 65)
 		self.startdate_entry.insert(0, today)
 
-		start_label = Label(self.tab4, text = "Start Date")
+		start_label = Label(self.presence_tab, text = "Start Date")
 		start_label.place(x = 1525, y = 68)
 		
-		self.enddate_entry = Entry(self.tab4)
+		self.enddate_entry = Entry(self.presence_tab)
 		self.enddate_entry.place(x = 1600, y = 95)
 		self.enddate_entry.insert(0, today)
 
-		end_label = Label(self.tab4, text = "End Date")
+		end_label = Label(self.presence_tab, text = "End Date")
 		end_label.place(x = 1525, y = 98)
 
-		tmp = Button(self.tab4, text = "Change", command = self.change)
+		tmp = Button(self.presence_tab, text = "Change", command = self.change)
 		tmp.place(x = 1600, y = 130)
 
-		self.frame = Frame(self.tab4, background = "grey", width=1000, height=110, borderwidth = 4)
+		self.frame = Frame(self.presence_tab, background = "grey", width=1000, height=110, borderwidth = 4)
 		self.frame.place(x = 100, y = 100)
 
 		self.visitors_label = Label(self.frame, text = "")
@@ -125,7 +104,7 @@ class Window:
 		self.peakhour_label = Label(self.frame, text = "")
 		self.conversion_label = Label(self.frame, text = "")
 
-		self.presence_note = ttk.Notebook(self.tab4)
+		self.presence_note = ttk.Notebook(self.presence_tab)
 		self.repeatVisitorsGraphTab = Frame(master=self.presence_note)
 		self.dwellTimeGraphTab = Frame(master=self.presence_note)
 		self.proximityGraphTab = Frame(master=self.presence_note)
@@ -481,12 +460,12 @@ class Window:
 		tab_text = event.widget.tab(selected_tab, "text")
 		
 		if (tab_text == "Map"):
-			self.map_note.bind("<<NotebookTabChanged>>", lambda event, arg1 =self.canvas1, arg2 = self.canvas2, arg3 = self.canvas3: self.on_map_tab_selected(event, arg1, arg2, arg3))
+			self.map_notebook.bind("<<NotebookTabChanged>>", lambda event, arg1 =self.canvas1, arg2 = self.canvas2, arg3 = self.canvas3: self.on_map_tab_selected(event, arg1, arg2, arg3))
 
 		if (tab_text == "Presence"):
 			self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
 			self.change()
 
 	def start(self):
-		self.tab_control.bind("<<NotebookTabChanged>>", self.on_tab_selected)
+		self.main_notebook.bind("<<NotebookTabChanged>>", self.on_tab_selected)
 		self.window.mainloop()
