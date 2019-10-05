@@ -57,6 +57,7 @@ class Window:
 		# 1st
 		self.canvas1 = Canvas(self.first_floor, width=1280, height=720, bg='black')
 		self.canvas1.pack(side='left')
+		# TODO SBASNAKA: are imagenames still hardcoded ?
 		self.image1 = ImageTk.PhotoImage(Image.open("maps/1stFloor.jpg"))
 		self.canvas1.create_image(0, 0, image = self.image1, anchor = 'nw')
 		# 2nd
@@ -161,14 +162,13 @@ class Window:
 				self.coordY = device["mapCoordinate"]["y"]
 				self.coordX *= 0.82
 				self.coordY *= 0.92
+				# TODO SBASNAKA: AttributeError: 'Window' object has no attribute 'colorize_found_oval'
+				# tried to search with mac-address
 				self.colorize_found_oval()
 
 				return True
 
 		return False
-
-	def clear(self):
-		self.search_entry.delete(0, END)
 
 	def click(self):
 		self.a1["text"] = ""
@@ -186,15 +186,15 @@ class Window:
 				self.a3["text"] = self.manufacturer
 				self.a3.place(x = 1500, y = 376)
 
-				self.clear()
+				self.search_entry.delete(0, END)
 			else:
 				self.a1["text"] = "Not Found"
 				self.a1.place(x = 1500, y = 216)
-				self.clear()
+				self.search_entry.delete(0, END)
 		else:
 			self.a1["text"] = "Empty Field"
 			self.a1.place(x = 1500, y = 216)
-			self.clear()
+			self.search_entry.delete(0, END)
 
 	def printDevices(self, canvas, needFloor):
 		previous_info = []
@@ -223,6 +223,7 @@ class Window:
 					xlogin = info[index]["userName"]
 					if (xlogin == ""):
 						xlogin = "unknown"
+					# SBASNAKA TODO: check if everything is ok. can't see me connecting to network!
 					print ("Hi, @" + xlogin + " or mac:" + str(item) +  " now is on the " + floor)
 					last_connected["text"] = "Hi, @" + xlogin + " or mac:" + str(item) +  " now is on the " + floor
 			previous_info = info
@@ -372,6 +373,7 @@ class Window:
 		def forget(event):
 			box.grid_forget()
 
+		# SBASNAKA TODO: change buttons color similar to bars or pie colors
 		text = "Peak Hour " + str(peakhour[0]) + "-" + str(int(peakhour[0]) + 1)
 
 		self.peakhour_label = Label(self.frame, text = text,

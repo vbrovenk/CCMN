@@ -82,7 +82,7 @@ class Graph:
 			pieDict[day] = pieDict[day] + value['count']
 		pie.pie(pieDict.values(), labels=pieDict.values(),
 			shadow=True, explode=[0.1] * len(pieDict))
-		pie.legend(pieDict.keys(), loc='upper right')
+		pie.legend(pieDict.keys(), loc='best')
 
 	def __prepareRepeatVisitorsGraph(self, bars, pie, forecast, startDate, endDate):
 		if (startDate == endDate):
@@ -202,10 +202,10 @@ class Graph:
 		bars = axes[0]
 		pie = axes[1]
 
-		# OSAMOILE TODO: resolve crash with mouse scroll
+		# SBASNAKA TODO: resolve crash with mouse scroll
+		# is it still present for you ? for me NO
 
-		forecast = self.__makeForecast() # TODO: why 3 times ?
-
+		forecast = self.__makeForecast()
 		if (self.tabName == 'Repeat Visitors'):
 			labels, xaxis = self.__prepareRepeatVisitorsGraph(bars, pie, forecast, startDate, endDate)
 		elif (self.tabName == 'Dwell Time'):
@@ -215,12 +215,12 @@ class Graph:
 
 		if (self.canvas):
 			self.canvas.get_tk_widget().destroy() # othervise graphics are stacking
-		if (startDate == endDate): # TODO: why here ?
+		if (startDate == endDate):
 			labels = [hour + ':00' for hour in labels]
 		bars.set_xticks(xaxis)
 		bars.set_xticklabels(labels, rotation=45, fontsize=7)
 		if (startDate != endDate):
 			bars.get_xticklabels()[len(labels) - 1].set_color('red')
-		bars.legend(loc='upper right') # TODO: legend position
+		bars.legend(loc='best')
 		self.canvas = FigureCanvasTkAgg(fig, master=self.tab)
 		self.canvas.get_tk_widget().pack()
