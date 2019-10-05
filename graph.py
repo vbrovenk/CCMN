@@ -1,5 +1,3 @@
-from request import Request
-
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import numpy as np
@@ -9,9 +7,9 @@ from dateutil.relativedelta import relativedelta
 
 class Graph:
 
-	def __init__(self, tab, tabName):
+	def __init__(self, request, tab, tabName):
 		self.canvas = None
-		self.request = Request()
+		self.request = request
 		self.tab = tab
 		self.tabName = tabName
 

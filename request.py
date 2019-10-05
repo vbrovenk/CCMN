@@ -3,10 +3,10 @@ import json
 import os
 from PIL import ImageTk, Image
 import shutil
-
-# TODO: rename file to request
+import logging
 
 class Request:
+	logging.basicConfig(filename = "log", filemode = "w", format = "%(asctime)s - %(levelname)s - %(message)s", datefmt = "%d/%m/%Y %I:%M:%S ", level = logging.INFO)
 	def __init__(self):
 		self.urlCMX = "https://cisco-cmx.unit.ua"
 		self.usernameCMX = "RO"
@@ -19,26 +19,11 @@ class Request:
 		self.id = self.takeSiteId()
 		self.imgNames = []
 
-		# SBASNAKA TODO: move these attributes to functions where they are used
-		self.connected = "/api/presence/v1/connected/total"
-		self.visitors = "/api/presence/v1/visitor/total"
-		self.passerby = "/api/presence/v1/passerby/total"
-		self.unique = "/api/presence/v1/visitor/count"
-
-		self.dwell = "/api/presence/v1/dwell/count"
-		self.dwell_average = "/api/presence/v1/dwell/average"
-
-		self.insights = "/api/presence/v1/insights"
-		self.hourly = "/api/presence/v1/visitor/hourly"
-	
 	def takeRequest(self, restAPI):
 		if restAPI == "/api/location/v2/clients" or restAPI == "/api/config/v1/maps":
 			endpoint = self.urlCMX + restAPI
 		else:
 			endpoint = self.url + restAPI
-		# enpoint = self.urlCMX + restAPI if restAPI == "/api/location/v2/clients" else self.url + restAPI
-		# print("Try URL: " + endpoint)
-		# SBASNAKA TODO: finish or remove
 		data = None
 		try:
 			if restAPI == "/api/location/v2/clients" or restAPI == "/api/config/v1/maps":
@@ -46,37 +31,38 @@ class Request:
 			else:
 				returnData = requests.request("GET", endpoint, auth=(self.username, self.password), verify=False)
 			data = json.loads(returnData.text)
+			logging.info("Successfuly made request")
 		except Exception as e:
-			print(e)
+			logging.error("Error in method: takeRequest()")
 		return (data)
 
 	def takeTotalVisitors(self, startDate, endDate, mode):
 		if (mode == "connected"):
-			devices = self.connected + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+			devices = "/api/presence/v1/connected/total" + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
 		elif (mode == "visitors"):
-			devices = self.visitors + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+			devices = "/api/presence/v1/visitor/total" + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
 		elif (mode == "passerby"):
-			devices = self.passerby + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+			devices = "/api/presence/v1/passerby/total" + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
 		else:
-			devices = self.unique + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+			devices = "/api/presence/v1/visitor/count" + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
 		answer = self.takeRequest(devices)
 		return answer
 
 
 	def takeDwellTime(self, startDate, endDate, mode):
 		if (mode == "dwell"):
-			devices = self.dwell + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+			devices = "/api/presence/v1/dwell/count" + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
 		elif (mode == "dwell_average"):
-			devices = self.dwell_average + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+			devices = "/api/presence/v1/dwell/average" + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
 		answer = self.takeRequest(devices)
 		return answer
 
 
 	def takeInsights(self, startDate, endDate, mode):
 		if (mode == "month_peakhour"):
-			devices = self.insights + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
+			devices = "/api/presence/v1/insights" + "?siteId=" + str(self.id) + "&startDate=" + startDate + "&endDate=" + endDate
 		elif (startDate == endDate and mode == "day_peakhour"):
-			devices = self.hourly + "?siteId=" + str(self.id) + "&date=" + startDate
+			devices = "/api/presence/v1/visitor/hourly" + "?siteId=" + str(self.id) + "&date=" + startDate
 		answer = self.takeRequest(devices)
 		return answer
 
@@ -84,8 +70,9 @@ class Request:
 		location = None
 		try:
 			location = self.takeRequest("/api/location/v2/clients")
+			# print(json.dumps(location, indent = 5))
 		except Exception as e:
-			print(e)
+			logging.error("Error in method: takeCoords()")
 		return (location)
 	
 	def takeData(self, dataType, startDate, endDate):
@@ -97,7 +84,9 @@ class Request:
 
 	def takeSiteId(self):
 		data = self.takeRequest("/api/config/v1/sites")
+		if data is not None:
 		id = data[0]["aesUId"]
+			logging.info("Successfuly took sites id")
 		return (id)
 
 	def getFloorImage(self):
@@ -105,9 +94,9 @@ class Request:
 		mapImages = []
 		try:
 			os.mkdir("./maps")
-			# TODO: remove /maps from git
+			logging.info("Successfuly created directory for the maps")
 		except OSError:
-			print("Creation of the directory is failed")
+			logging.error("Creation of the directory is failed, method getFloorImage()")
 		for campus in mapdatajson["campuses"]:
 			for building in campus["buildingList"]:
 				for floor in building["floorList"]:
@@ -134,8 +123,8 @@ class Request:
 							response.raw.decode_content = True
 							shutil.copyfileobj(response.raw, f)
 					except Exception as e:
-						print(e)
-
+						logging.error("Error in method: getFloorImage()")
+		logging.info("Successfuly downloaded images of the maps")
 		self.resizeImgs()
 
 	def resizeImgs(self):

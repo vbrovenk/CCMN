@@ -1,5 +1,6 @@
 import urllib3
 from window import Window
+from request import Request
 
 # TODO: rename file + update README
 
@@ -10,7 +11,7 @@ def main():
 	###### CLASS ########
 	# test = cisco.Request()
 	# test.getFloorImage() # TODO SBASNAKA: just test, but need to do it before passing project!!!
-	mainWindow = Window()
+	mainWindow = Window(Request())
 	mainWindow.start()
 
 if __name__ == "__main__":

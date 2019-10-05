@@ -1,4 +1,3 @@
-from request import Request
 import graph
 
 import json
@@ -14,11 +13,11 @@ from matplotlib.figure import Figure
 import numpy as np
 
 class Window:
-	def __init__(self):
+	def __init__(self, request):
 		self.x = 1965
 		self.y = 897
 
-		self.request = Request()
+		self.request = request
 
 		self.window = Tk()
 		self.window.title("CCMN")
@@ -75,6 +74,7 @@ class Window:
 		#### PRESENCE FRAME ####
 
 		today = datetime.datetime.today().strftime("%Y-%m-%d")
+		self.month_year = today.split("-")
 
 		calendar_button = Button(self.presence_tab, text = "Choose Date Range", command = self.create_calendar)
 		calendar_button.place(x = 1600, y = 40)
@@ -96,7 +96,7 @@ class Window:
 		tmp = Button(self.presence_tab, text = "Change", command = self.change)
 		tmp.place(x = 1600, y = 130)
 
-		self.frame = Frame(self.presence_tab, background = "grey", width=1000, height=110, borderwidth = 4)
+		self.frame = Frame(self.presence_tab, background = "white", width=1000, height=110, borderwidth = 4)
 		self.frame.place(x = 100, y = 100)
 
 		self.visitors_label = Label(self.frame, text = "")
@@ -117,18 +117,35 @@ class Window:
 		self.presence_note.add(self.dwellTimeGraphTab, text='Dwell Time')
 		self.presence_note.add(self.proximityGraphTab, text='Proximity')
 
-		self.repeatVisitorsGraph = graph.Graph(self.repeatVisitorsGraphTab, 'Repeat Visitors')
-		self.dwellTimeGraph = graph.Graph(self.dwellTimeGraphTab, 'Dwell Time')
-		self.proximityGraph = graph.Graph(self.proximityGraphTab, 'Proximity')
+		self.repeatVisitorsGraph = graph.Graph(self.request, self.repeatVisitorsGraphTab, 'Repeat Visitors')
+		self.dwellTimeGraph = graph.Graph(self.request, self.dwellTimeGraphTab, 'Dwell Time')
+		self.proximityGraph = graph.Graph(self.request, self.proximityGraphTab, 'Proximity')
 		self.presence_note.place(x = 100, y = 270)
 		
+		self.firstFloor_oval = self.canvas1.create_oval(0, 0, 0, 0)
+		self.secondFloor_oval = self.canvas2.create_oval(0, 0, 0, 0)
+		self.thirdFloor_oval = self.canvas3.create_oval(0, 0, 0, 0)
 		#### THREADS ####
 		self.thread_Floors = {"1st_Floor":False, "2nd_Floor":False, "3rd_Floor":False}
 
-		self.a1 = Label(self.map_tab, text ="", font="Times 18", fg='#808080')
-		self.a2 = Label(self.map_tab, text ="", font="Times 18", fg='#808080')
-		self.a3 = Label(self.map_tab, text ="", font="Times 18", fg='#808080')
-		self.a4 = Label(self.map_tab, text ="", font="Times 18", fg='#808080')
+		self.a1 = Label(self.map_tab, text ="", font = "Avenir, 18", fg = '#666699')
+		self.a2 = Label(self.map_tab, text ="", font = "Avenir, 18", fg = '#666699')
+		self.a3 = Label(self.map_tab, text ="", font = "Avenir, 18", fg = '#666699')
+		self.a4 = Label(self.map_tab, text ="", font = "Avenir, 18", fg = '#666699')
+
+	def colorize_found(self):
+		if (self.floor == "1st_Floor"):
+			if self.firstFloor_oval is not None:
+				self.canvas1.delete("green1")
+			self.firstFloor_oval = self.canvas1.create_oval(self.coordX - 10, self.coordY - 10, self.coordX + 10, self.coordY + 10, fill = '#ff0000', tags = "green1")
+		if (self.floor == "2nd_Floor"):
+			if self.secondFloor_oval is not None:
+				self.canvas2.delete("green2")
+			self.secondFloor_oval = self.canvas2.create_oval(self.coordX - 10, self.coordY - 10, self.coordX + 10, self.coordY + 10, fill = '#ff0000', tags = "green2")
+		if (self.floor == "3rd_Floor"):
+			if self.thirdFloor_oval is not None:
+				self.canvas3.delete("green3")
+			self.thirdFloor_oval = self.canvas3.create_oval(self.coordX - 10, self.coordY - 10, self.coordX + 10, self.coordY + 10, fill = '#ff0000', tags = "green3")
 
 	def give_info(self):
 		coords = self.request.takeCooords()
@@ -139,14 +156,18 @@ class Window:
 				self.floor = device["mapInfo"]["mapHierarchyString"].split('>')[2]
 				self.ssid = device["ssId"]
 				self.manufacturer = device["manufacturer"]
-				self.coordX = str(device["mapCoordinate"]["x"])
-				self.coordY = str(device["mapCoordinate"]["y"])
+				self.coordX = device["mapCoordinate"]["x"]
+				self.coordY = device["mapCoordinate"]["y"]
+				self.coordX *= 0.82
+				self.coordY *= 0.92
+				self.colorize_found_oval()
+
 				return True
 
 		return False
 
 	def clear(self):
-		self.entry.delete(0, END)
+		self.search_entry.delete(0, END)
 
 	def click(self):
 		self.a1["text"] = ""
@@ -155,44 +176,43 @@ class Window:
 		self.a4["text"] = ""
 		if (len(self.message.get()) > 0):
 			if self.give_info() == True:
-				self.a1["text"] = self.MACaddress
-				self.a1.place(x = 1500, y = 220)
+				self.a1["text"] = self.detectingControllers
+				self.a1.place(x = 1500, y = 216)
 
-				self.a2["text"] = self.detectingControllers
-				self.a2.place(x = 1500, y = 300)
+				self.a2["text"] = self.floor
+				self.a2.place(x = 1500, y = 296)
 
-				self.a3["text"] = "X = " + self.coordX + " Y = " + self.coordY
-				self.a3.place(x = 1500, y = 370)
-
-				self.a4["text"] = self.floor
-				self.a4.place(x = 1500, y = 440)
+				self.a3["text"] = self.manufacturer
+				self.a3.place(x = 1500, y = 376)
 
 				self.clear()
 			else:
 				self.a1["text"] = "Not Found"
-				self.a1.place(x = 1300, y = 160)
-				self.clear() # SBASNAKA TODO: is it still actual?
+				self.a1.place(x = 1500, y = 216)
+				self.clear()
 		else:
 			self.a1["text"] = "Empty Field"
-			self.a1.place(x = 1300, y = 160)
+			self.a1.place(x = 1500, y = 216)
 			self.clear()
 
 	def printDevices(self, canvas, needFloor):
 		previous_info = []
+		last_connected = Label(self.map_tab, text = "", font = "Avenir, 26", fg = '#666699')
+		last_connected.place(x = 300, y = 790)
 		while True:
 			if(self.thread_Floors[needFloor] == False):
 				break
-
 			info = self.request.takeCooords()
 			mac = [i["macAddress"] for i in info]
 			time.sleep(1)
+			canvas.delete("all_ovals")
 			for device in info:
 				if (needFloor in device["mapInfo"]["mapHierarchyString"]):
 					mapCoordinateX = device["mapCoordinate"]["x"]
 					mapCoordinateY = device["mapCoordinate"]["y"]
 					mapCoordinateX *= 0.82
 					mapCoordinateY *= 0.92
-					canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue')
+					canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue', tags = "all_ovals")
 			if len(previous_info) > 0:
 				previous_info = [i["macAddress"] for i in previous_info]
 				difference = [item for item in mac if item not in previous_info]
@@ -203,26 +223,24 @@ class Window:
 					if (xlogin == ""):
 						xlogin = "unknown"
 					print ("Hi, @" + xlogin + " or mac:" + str(item) +  " now is on the " + floor)
+					last_connected["text"] = "Hi, @" + xlogin + " or mac:" + str(item) +  " now is on the " + floor
 			previous_info = info
 
 	def createFields(self):
 		self.message = StringVar()
-		self.label = Label(self.map_tab, text = "Input Mac Adress")
-		self.label.place(x = 1350, y = 124)
-		self.entry = Entry(self.map_tab, textvariable = self.message)
-		self.entry.place(x = 1470, y = 120)
-		self.button = Button(self.map_tab, text = "search", command = self.click)
-		self.button.place(x = 1670, y = 120)
+		self.search_label = Label(self.map_tab, text = "Input Mac Adress", font = "Avenir, 14", fg = '#666699')
+		self.search_label.place(x = 1350, y = 172)
+		self.search_entry = Entry(self.map_tab, textvariable = self.message)
+		self.search_entry.place(x = 1470, y = 170)
+		self.search_button = Button(self.map_tab, text = "search", command = self.click)
+		self.search_button.place(x = 1670, y = 170)
 
-		# SBASNAKA TODO: remove mac address
-		self.Mac = Label(self.map_tab, text = "MAC Address:", font = "Times 26", fg = '#666699')
-		self.Mac.place(x = 1500, y = 170)
-		self.Ip = Label(self.map_tab, text = "IP Address:", font = "Times 26", fg = '#666699')
-		self.Ip.place(x = 1500, y = 250)
-		self.Coords = Label(self.map_tab, text = "Co-ordinates:", font = "Times 26", fg = '#666699')
-		self.Coords.place(x = 1500, y = 330)
-		self.Floor = Label(self.map_tab, text = "Floor: ", font = "Times 26", fg = '#666699')
-		self.Floor.place(x = 1500, y = 410)
+		self.Ip = Label(self.map_tab, text = "IP Address:", font = "Avenir, 18", fg = '#666699')
+		self.Ip.place(x = 1350, y = 216)
+		self.Floor = Label(self.map_tab, text = "Floor: ", font = "Avenir, 18", fg = '#666699')
+		self.Floor.place(x = 1350, y = 296)
+		self.Manufacturer = Label(self.map_tab, text = "Manufacturer: ", font = "Avenir, 18", fg = '#666699')
+		self.Manufacturer.place(x = 1350, y = 376)
 	
 	def totalVisitors(self):
 		connected = self.request.takeTotalVisitors(self.startdate_entry.get(), self.enddate_entry.get(), "connected")
@@ -267,7 +285,7 @@ class Window:
 						bg="blue",
 						selectbackground="#5EAA5A",
 						relief=RAISED,
-						font=("Avenir", 18),
+						font=("Avenir, 18"),
 						fg = "white")
 
 		box_info = [	"Unique Visitors " + str(total_visitors[0]),
@@ -303,7 +321,7 @@ class Window:
 						bg="blue",
 						selectbackground="#5EAA5A",
 						relief=RAISED,
-						font=("Avenir", 18),
+						font=("Avenir, 18"),
 						fg = "white")
 
 		box_info = [	"5-30 mins " + str(dwell[0][0]) + " visitors",
@@ -339,7 +357,7 @@ class Window:
 						bg="blue",
 						selectbackground="#5EAA5A",
 						relief=RAISED,
-						font=("Avenir", 18),
+						font=("Avenir, 18"),
 						fg = "white")
 
 		box.insert(1, "Visitors in peak hour " + str(peakhour[1]))
@@ -374,7 +392,7 @@ class Window:
 						bg="blue",
 						selectbackground="#5EAA5A",
 						relief=RAISED,
-						font=("Avenir", 18),
+						font=("Avenir, 18"),
 						fg = "white")
 
 		box_info = [	"Conversion Rate " + str(conversion_rate[0]) + "%",
@@ -410,7 +428,10 @@ class Window:
 
 	def create_calendar(self):
 		top = Toplevel(self.window)
-		self.calendar = Calendar(top, bordercolor = "black", font = "Times 20", background = "white", weekendforeground = "black", disableddayforeground = "#686564", showothermonthdays = False, showweeknumbers = False, foreground = "black", selectforeground = "blue", selectbackground = "blue", selectmode = "day", year = 2019, month = 9, date_pattern = "y-mm-dd", maxdate = datetime.datetime.today())
+		self.calendar = Calendar(top, bordercolor = "black", font = "Times 20", background = "white", 
+										weekendforeground = "black", disableddayforeground = "#686564", showothermonthdays = False, 
+										showweeknumbers = False, foreground = "black", selectforeground = "blue", selectbackground = "blue", 
+										selectmode = "day", year = int(self.month_year[0]), month = int(self.month_year[1]), date_pattern = "y-mm-dd", maxdate = datetime.datetime.today())
 		self.calendar.pack(fill = BOTH, expand = 1)
 		from_button = Button(top, text = "Start Date", command = self.takeStartDate)
 		from_button.pack(side = LEFT)
