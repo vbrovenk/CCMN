@@ -188,7 +188,7 @@ class Graph:
 		graph.set_xticks(xaxis)
 		graph.set_xticklabels(keys, rotation=45, fontsize=7)
 		if (startDate != endDate):
-			graph.get_xticklabels()[len(keys) - 1].set_color('red') # TODO: need pylint ?
+			graph.get_xticklabels()[len(keys) - 1].set_color('red')
 		fig.legend(loc='upper right')
 		self.canvas = FigureCanvasTkAgg(fig, master=self.tab)
 		self.canvas.get_tk_widget().pack()

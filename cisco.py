@@ -19,6 +19,7 @@ class Request:
 		self.id = self.takeSiteId()
 		self.imgNames = []
 
+		# SBASNAKA TODO: move these attributes to functions where they are used
 		self.connected = "/api/presence/v1/connected/total"
 		self.visitors = "/api/presence/v1/visitor/total"
 		self.passerby = "/api/presence/v1/passerby/total"
@@ -37,13 +38,13 @@ class Request:
 			endpoint = self.url + restAPI
 		# enpoint = self.urlCMX + restAPI if restAPI == "/api/location/v2/clients" else self.url + restAPI
 		# print("Try URL: " + endpoint)
+		# SBASNAKA TODO: finish or remove
 		data = None
 		try:
 			if restAPI == "/api/location/v2/clients" or restAPI == "/api/config/v1/maps":
 				returnData = requests.request("GET", endpoint, auth=(self.usernameCMX, self.passwordCMX), verify=False)
 			else:
 				returnData = requests.request("GET", endpoint, auth=(self.username, self.password), verify=False)
-			# print(json.dumps(returnData, indent = 5))
 			data = json.loads(returnData.text)
 		except Exception as e:
 			print(e)
@@ -83,7 +84,6 @@ class Request:
 		location = None
 		try:
 			location = self.takeRequest("/api/location/v2/clients")
-			# print(json.dumps(location, indent = 5))
 		except Exception as e:
 			print(e)
 		return (location)
@@ -108,7 +108,6 @@ class Request:
 			# TODO: remove /maps from git
 		except OSError:
 			print("Creation of the directory is failed")
-		# print(mapdatajson)
 		for campus in mapdatajson["campuses"]:
 			for building in campus["buildingList"]:
 				for floor in building["floorList"]:
@@ -126,12 +125,9 @@ class Request:
 					"/api/config/v1/maps/imagesource/" + \
 					floor["image"]["imageName"]
 
-					print("trying " + endpoint)
 					try:
 						response = requests.request("GET", endpoint, \
 						auth=(self.usernameCMX, self.passwordCMX), stream=True, verify=False)
-						print("Got Map")
-
 						with open("./maps/" + \
 						floor["image"]["imageName"], 'wb') as f:
 							self.imgNames.append(floor["image"]["imageName"])
@@ -139,7 +135,7 @@ class Request:
 							shutil.copyfileobj(response.raw, f)
 					except Exception as e:
 						print(e)
-		# print (self.imgNames)
+
 		self.resizeImgs()
 
 	def resizeImgs(self):
