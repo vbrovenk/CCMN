@@ -1,4 +1,4 @@
-from cisco import Request
+from request import Request
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
