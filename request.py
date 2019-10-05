@@ -87,12 +87,31 @@ class Request:
 		except Exception as e:
 			print(e)
 		return (location)
-	
-	def takeData(self, dataType, startDate, endDate):
-		if (startDate == endDate):
-			request = '/api/presence/v1/' + dataType + '/hourly?siteId=' + str(self.id) + '&date=' + startDate
-		else:
-			request = '/api/presence/v1/' + dataType + '/daily?siteId=' + str(self.id) + '&startDate=' + startDate + '&endDate=' + endDate # if period is more than a day
+
+	def takeHourlyData(self, dataType, date):
+		'''
+			List of suitable data types:
+				* repeatvisitors
+				* dwell
+				* connected
+				* visitor
+				* passerby
+				* mb etc but not used
+		'''
+		request = '/api/presence/v1/' + dataType + '/hourly?siteId=' + str(self.id) + '&date=' + date
+		return(self.takeRequest(request))
+
+	def takeDailyData(self, dataType, startDate, endDate):
+		'''
+			List of suitable data types:
+				* repeatvisitors
+				* dwell
+				* connected
+				* visitor
+				* passerby
+				* mb etc but not used
+		'''
+		request = '/api/presence/v1/' + dataType + '/daily?siteId=' + str(self.id) + '&startDate=' + startDate + '&endDate=' + endDate # if period is more than a day
 		return(self.takeRequest(request))
 
 	def takeSiteId(self):

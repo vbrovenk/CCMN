@@ -6,6 +6,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 from dateutil.relativedelta import relativedelta
+import calendar
+
+# SBASNAKA TODO: current month as default
+# SBASNAKA TODO: startDate is week ago as default
 
 class Graph:
 
@@ -20,11 +24,11 @@ class Graph:
 		tommorow_weekday = (datetime.datetime.today() + datetime.timedelta(days = 1)).strftime("%A")
 		today = datetime.datetime.today().strftime("%Y-%m-%d")
 
-		connected = self.request.takeData('connected', period, today)
-		visitors = self.request.takeData('visitor', period, today)
-		passerby = self.request.takeData('passerby', period, today)
-		dwell = self.request.takeData('dwell', period, today)
-		repeat = self.request.takeData('repeatvisitors', period, today)
+		connected = self.request.takeDailyData('connected', period, today)
+		visitors = self.request.takeDailyData('visitor', period, today)
+		passerby = self.request.takeDailyData('passerby', period, today)
+		dwell = self.request.takeDailyData('dwell', period, today)
+		repeat = self.request.takeDailyData('repeatvisitors', period, today)
 		
 		forecast = dict()
 		con_list = []
@@ -73,124 +77,155 @@ class Graph:
 
 		return (forecast)
 
-	def __prepareRepeatVisitorsGraph(self, graph, forecast, startDate, endDate):
-		data = self.request.takeData('repeatvisitors', startDate, endDate)
+	def __preparePie(self, pieData, pie):
+		pieDict = dict()
+		for value in pieData:
+			date = datetime.datetime.strptime(value['date'], '%Y-%m-%d')
+			day = calendar.day_name[date.weekday()] # date.weekday returns number of a day
+			if (day not in pieDict):
+				pieDict.update({day:0})
+			pieDict[day] = pieDict[day] + value['count']
+		pie.pie(pieDict.values(), labels=pieDict.values(),
+			shadow=True, explode=[0.1] * len(pieDict))
+		pie.legend(pieDict.keys(), loc='upper right')
 
-		keys = list(data.keys())
-		if (startDate != endDate):
-			xaxis = np.arange(len(keys) + 1) # +1 for prediction
+	def __prepareRepeatVisitorsGraph(self, bars, pie, forecast, startDate, endDate):
+		if (startDate == endDate):
+			data = self.request.takeHourlyData('repeatvisitors', startDate)
 		else:
-			xaxis = np.arange(len(keys))
+			data = self.request.takeDailyData('repeatvisitors', startDate, endDate)
 
-		DAILY = [data.get(key).get('DAILY') for key in keys]
-		WEEKLY = [data.get(key).get('WEEKLY') for key in keys]
-		OCCASIONAL = [data.get(key).get('OCCASIONAL') for key in keys]
-		FIRST_TIME = [data.get(key).get('FIRST_TIME') for key in keys]
-		YESTERDAY = [data.get(key).get('YESTERDAY') for key in keys]
+		DAILY = [data.get(key).get('DAILY') for key in data.keys()]
+		WEEKLY = [data.get(key).get('WEEKLY') for key in data.keys()]
+		OCCASIONAL = [data.get(key).get('OCCASIONAL') for key in data.keys()]
+		FIRST_TIME = [data.get(key).get('FIRST_TIME') for key in data.keys()]
+		YESTERDAY = [data.get(key).get('YESTERDAY') for key in data.keys()]
 
+		labels = list(data.keys())
 		if (startDate != endDate):
+			xaxis = np.arange(len(labels) + 1) # +1 for prediction
 			DAILY.append(forecast['DAILY'])
 			WEEKLY.append(forecast['WEEKLY'])
 			OCCASIONAL.append(forecast['OCCASIONAL'])
 			FIRST_TIME.append(forecast['FIRST_TIME'])
 			YESTERDAY.append(forecast['YESTERDAY'])
 			tomorrow = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d') # today plus one day
-			keys.append(tomorrow)
-
-		graph.bar(xaxis - 0.3, DAILY, width=0.15, label='DAILY')
-		graph.bar(xaxis - 0.15, WEEKLY, width=0.15, label='WEEKLY')
-		graph.bar(xaxis, OCCASIONAL, width=0.15, label='OCCASIONAL')
-		graph.bar(xaxis + 0.15, FIRST_TIME, width=0.15, label='FIRST_TIME')
-		graph.bar(xaxis + 0.3, YESTERDAY, width=0.15, label='YESTERDAY')
-
-		return keys, xaxis
-
-	def __prepareDwellTimeGraph(self, graph, forecast, startDate, endDate):
-		data = self.request.takeData('dwell', startDate, endDate)
-
-		keys = list(data.keys())
-		if (startDate != endDate):
-			xaxis = np.arange(len(keys) + 1) # +1 for prediction
+			labels.append(tomorrow)
 		else:
-			xaxis = np.arange(len(keys))
+			xaxis = np.arange(len(labels))
+			data = self.request.takeDailyData('repeatvisitors', startDate, endDate) # for pie
+		
+		pieData = [dict(date=key, count=data.get(key).get('DAILY')) for key in data.keys()]
+		pie.set_title('Daily')
+		self.__preparePie(pieData, pie)
 
-		FIVE_TO_THIRTY_MINUTES = [data.get(key).get('FIVE_TO_THIRTY_MINUTES') for key in keys]
-		THIRTY_TO_SIXTY_MINUTES = [data.get(key).get('THIRTY_TO_SIXTY_MINUTES') for key in keys]
-		ONE_TO_FIVE_HOURS = [data.get(key).get('ONE_TO_FIVE_HOURS') for key in keys]
-		FIVE_TO_EIGHT_HOURS = [data.get(key).get('FIVE_TO_EIGHT_HOURS') for key in keys]
-		EIGHT_PLUS_HOURS = [data.get(key).get('EIGHT_PLUS_HOURS') for key in keys]
+		bars.bar(xaxis - 0.3, DAILY, width=0.15, label='Daily')
+		bars.bar(xaxis - 0.15, WEEKLY, width=0.15, label='Weekly')
+		bars.bar(xaxis, OCCASIONAL, width=0.15, label='Occasional')
+		bars.bar(xaxis + 0.15, FIRST_TIME, width=0.15, label='First Time')
+		bars.bar(xaxis + 0.3, YESTERDAY, width=0.15, label='Yesterday')
+		return labels, xaxis
 
+	def __prepareDwellTimeGraph(self, bars, pie, forecast, startDate, endDate):
+		if (startDate == endDate):
+			data = self.request.takeHourlyData('dwell', startDate)
+		else:
+			data = self.request.takeDailyData('dwell', startDate, endDate)
+
+		FIVE_TO_THIRTY_MINUTES = [data.get(key).get('FIVE_TO_THIRTY_MINUTES') for key in data.keys()]
+		THIRTY_TO_SIXTY_MINUTES = [data.get(key).get('THIRTY_TO_SIXTY_MINUTES') for key in data.keys()]
+		ONE_TO_FIVE_HOURS = [data.get(key).get('ONE_TO_FIVE_HOURS') for key in data.keys()]
+		FIVE_TO_EIGHT_HOURS = [data.get(key).get('FIVE_TO_EIGHT_HOURS') for key in data.keys()]
+		EIGHT_PLUS_HOURS = [data.get(key).get('EIGHT_PLUS_HOURS') for key in data.keys()]
+
+		labels = list(data.keys())
 		if (startDate != endDate):
+			xaxis = np.arange(len(labels) + 1) # +1 for prediction
 			FIVE_TO_THIRTY_MINUTES.append(forecast['FIVE_TO_THIRTY_MINUTES'])
 			THIRTY_TO_SIXTY_MINUTES.append(forecast['THIRTY_TO_SIXTY_MINUTES'])
 			ONE_TO_FIVE_HOURS.append(forecast['ONE_TO_FIVE_HOURS'])
 			FIVE_TO_EIGHT_HOURS.append(forecast['FIVE_TO_EIGHT_HOURS'])
 			EIGHT_PLUS_HOURS.append(forecast['EIGHT_PLUS_HOURS'])
 			tomorrow = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d') # today plus one day
-			keys.append(tomorrow)
-
-		graph.bar(xaxis - 0.3, FIVE_TO_THIRTY_MINUTES, width=0.15, label='FIVE_TO_THIRTY_MINUTES')
-		graph.bar(xaxis - 0.15, THIRTY_TO_SIXTY_MINUTES, width=0.15, label='THIRTY_TO_SIXTY_MINUTES')
-		graph.bar(xaxis, ONE_TO_FIVE_HOURS, width=0.15, label='ONE_TO_FIVE_HOURS')
-		graph.bar(xaxis + 0.15, FIVE_TO_EIGHT_HOURS, width=0.15, label='FIVE_TO_EIGHT_HOURS')
-		graph.bar(xaxis + 0.3, EIGHT_PLUS_HOURS, width=0.15, label='EIGHT_PLUS_HOURS')
-
-		return keys, xaxis
-
-	def __prepareProximityGraph(self, graph, forecast, startDate, endDate):
-		connected = self.request.takeData('connected', startDate, endDate)
-		visitors = self.request.takeData('visitor', startDate, endDate)
-		passerby = self.request.takeData('passerby', startDate, endDate)
-
-		keys = list(connected.keys())
-		if (startDate != endDate):
-			xaxis = np.arange(len(keys) + 1) # +1 for prediction
+			labels.append(tomorrow)
 		else:
-			xaxis = np.arange(len(keys))
+			xaxis = np.arange(len(labels))
+			data = self.request.takeDailyData('dwell', startDate, endDate) # for pie
 
-		CONNECTED = [connected.get(key) for key in keys]
-		VISITORS = [visitors.get(key) for key in keys]
-		PASSERBY = [passerby.get(key) for key in keys]
+		pieData = [dict(date=key, count=data.get(key).get('EIGHT_PLUS_HOURS')) for key in data.keys()]
+		pie.set_title('8+ hours')
+		self.__preparePie(pieData, pie)
+
+		bars.bar(xaxis - 0.3, FIVE_TO_THIRTY_MINUTES, width=0.15, label='5-30 mins')
+		bars.bar(xaxis - 0.15, THIRTY_TO_SIXTY_MINUTES, width=0.15, label='30-60 mins')
+		bars.bar(xaxis, ONE_TO_FIVE_HOURS, width=0.15, label='1-5 hours')
+		bars.bar(xaxis + 0.15, FIVE_TO_EIGHT_HOURS, width=0.15, label='5-8 hours')
+		bars.bar(xaxis + 0.3, EIGHT_PLUS_HOURS, width=0.15, label='8+ hours')
+
+		return labels, xaxis
+
+	def __prepareProximityGraph(self, bars, pie, forecast, startDate, endDate):
+		if (startDate == endDate):
+			connected = self.request.takeHourlyData('connected', startDate)
+			visitors = self.request.takeHourlyData('visitor', startDate)
+			passerby = self.request.takeHourlyData('passerby', startDate)
+		else:
+			connected = self.request.takeDailyData('connected', startDate, endDate)
+			visitors = self.request.takeDailyData('visitor', startDate, endDate)
+			passerby = self.request.takeDailyData('passerby', startDate, endDate)
+
+		CONNECTED = [connected.get(key) for key in connected.keys()]
+		VISITORS = [visitors.get(key) for key in connected.keys()]
+		PASSERBY = [passerby.get(key) for key in connected.keys()]
 		
+		labels = list(connected.keys())
 		if (startDate != endDate):
+			xaxis = np.arange(len(labels) + 1) # +1 for prediction
 			CONNECTED.append(forecast['CONNECTED'])
 			VISITORS.append(forecast['VISITORS'])
 			PASSERBY.append(forecast['PASSERBY'])
 			tomorrow = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d') # today plus one day
-			keys.append(tomorrow)
+			labels.append(tomorrow)
+		else:
+			xaxis = np.arange(len(labels))
+			connected = self.request.takeDailyData('connected', startDate, endDate) # for pie
 
-		graph.bar(xaxis - 0.15, CONNECTED, width=0.15, label='CONNECTED')
-		graph.bar(xaxis, VISITORS, width=0.15, label='VISITORS')
-		graph.bar(xaxis + 0.15, PASSERBY, width=0.15, label='PASSERBY')
+		pieData = [dict(date=key, count=connected.get(key)) for key in connected.keys()]
+		pie.set_title('Connected')
+		self.__preparePie(pieData, pie)
 
-		return keys, xaxis
+		bars.bar(xaxis - 0.15, CONNECTED, width=0.15, label='Connected')
+		bars.bar(xaxis, VISITORS, width=0.15, label='Visitors')
+		bars.bar(xaxis + 0.15, PASSERBY, width=0.15, label='Passerby')
+
+		return labels, xaxis
 
 	def show(self, startDate, endDate):
 
-		fig, graph = plt.subplots(figsize=(10,5))
+		fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15,5))
 
-		# OSAMOILE TODO: change legend similar to https://cisco-presence.unit.ua/presence/
+		bars = axes[0]
+		pie = axes[1]
+
 		# OSAMOILE TODO: resolve crash with mouse scroll
 
-		forecast = self.__makeForecast()
+		forecast = self.__makeForecast() # TODO: why 3 times ?
 
 		if (self.tabName == 'Repeat Visitors'):
-			keys, xaxis = self.__prepareRepeatVisitorsGraph(graph, forecast, startDate, endDate)
+			labels, xaxis = self.__prepareRepeatVisitorsGraph(bars, pie, forecast, startDate, endDate)
 		elif (self.tabName == 'Dwell Time'):
-			keys, xaxis = self.__prepareDwellTimeGraph(graph, forecast, startDate, endDate)
+			labels, xaxis = self.__prepareDwellTimeGraph(bars, pie, forecast, startDate, endDate)
 		elif (self.tabName == 'Proximity'):
-			keys, xaxis = self.__prepareProximityGraph(graph, forecast, startDate, endDate)
+			labels, xaxis = self.__prepareProximityGraph(bars, pie, forecast, startDate, endDate)
 
 		if (self.canvas):
 			self.canvas.get_tk_widget().destroy() # othervise graphics are stacking
-		if (startDate == endDate):
-			keys = [hour + ':00' for hour in keys]
-		graph.set_xticks(xaxis)
-		graph.set_xticklabels(keys, rotation=45, fontsize=7)
+		if (startDate == endDate): # TODO: why here ?
+			labels = [hour + ':00' for hour in labels]
+		bars.set_xticks(xaxis)
+		bars.set_xticklabels(labels, rotation=45, fontsize=7)
 		if (startDate != endDate):
-			graph.get_xticklabels()[len(keys) - 1].set_color('red')
-		fig.legend(loc='upper right')
+			bars.get_xticklabels()[len(labels) - 1].set_color('red')
+		bars.legend(loc='upper right') # TODO: legend position
 		self.canvas = FigureCanvasTkAgg(fig, master=self.tab)
 		self.canvas.get_tk_widget().pack()
-
-		# OSAMOILE TODO: pie chart session duration and the day of the week
