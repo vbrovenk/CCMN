@@ -11,7 +11,7 @@ class Request:
 		self.urlCMX = "https://cisco-cmx.unit.ua"
 		self.usernameCMX = "RO"
 		self.passwordCMX = "just4reading"
-		# TODO: check crashes with incorrect credentials
+		# OSAMOILE TODO: check crashes with incorrect credentials
 		self.url = "https://cisco-presence.unit.ua"
 		self.username = "RO"
 		self.password = "Passw0rd"
@@ -86,7 +86,9 @@ class Request:
 				* mb etc but not used
 		'''
 		request = '/api/presence/v1/' + dataType + '/hourly?siteId=' + str(self.id) + '&date=' + date
-		return(self.takeRequest(request))
+		data = self.takeRequest(request)
+		data = { key:value for key,value in data.items() if value is not None}
+		return data
 
 	def takeDailyData(self, dataType, startDate, endDate):
 		'''
@@ -99,7 +101,9 @@ class Request:
 				* mb etc but not used
 		'''
 		request = '/api/presence/v1/' + dataType + '/daily?siteId=' + str(self.id) + '&startDate=' + startDate + '&endDate=' + endDate # if period is more than a day
-		return(self.takeRequest(request))
+		data = self.takeRequest(request)
+		data = { key:value for key,value in data.items() if value is not None}
+		return data
 
 	def takeSiteId(self):
 		data = self.takeRequest("/api/config/v1/sites")
