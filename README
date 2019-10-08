@@ -1,5 +1,5 @@
 Requirements:
-	python3
+	python 3.7.3
 
 python3 -m venv env
 source env/bin/activate

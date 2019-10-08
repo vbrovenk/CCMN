@@ -6,12 +6,12 @@ import shutil
 import logging
 
 class Request:
-	logging.basicConfig(filename = "log", filemode = "w", format = "%(asctime)s - %(levelname)s - %(message)s", datefmt = "%d/%m/%Y %I:%M:%S ", level = logging.INFO)
+	logging.basicConfig(filename = "log", filemode = "w", format = "%(asctime)s - %(levelname)s - %(message)s", datefmt = "%d/%m/%Y %I:%M:%S", level = logging.INFO)
 	def __init__(self):
 		self.urlCMX = "https://cisco-cmx.unit.ua"
 		self.usernameCMX = "RO"
 		self.passwordCMX = "just4reading"
-		# OSAMOILE TODO: check crashes with incorrect credentials
+
 		self.url = "https://cisco-presence.unit.ua"
 		self.username = "RO"
 		self.password = "Passw0rd"
@@ -33,7 +33,7 @@ class Request:
 			data = json.loads(returnData.text)
 			logging.info("Successfuly made request")
 		except Exception as e:
-			logging.error("Error in method: takeRequest()")
+			logging.error("takeRequest: " + str(e))
 		return (data)
 
 	def takeTotalVisitors(self, startDate, endDate, mode):
@@ -70,9 +70,8 @@ class Request:
 		location = None
 		try:
 			location = self.takeRequest("/api/location/v2/clients")
-			# print(json.dumps(location, indent = 5))
 		except Exception as e:
-			logging.error("Error in method: takeCoords()")
+			logging.error("takeCoords: " + str(e))
 		return (location)
 
 	def takeHourlyData(self, dataType, date):
@@ -110,16 +109,22 @@ class Request:
 		if data is not None:
 			id = data[0]["aesUId"]
 			logging.info("Successfuly took sites id")
-		return (id)
+			return (id)
+		else:
+			logging.error('Check your internet connection')
+			exit()
 
 	def getFloorImage(self):
 		mapdatajson = self.takeRequest("/api/config/v1/maps")
+		if not mapdatajson:
+			logging.error('Check your internet connection')
+			exit()
 		mapImages = []
 		try:
 			os.mkdir("./maps")
 			logging.info("Successfuly created directory for the maps")
-		except OSError:
-			logging.error("Creation of the directory is failed, method getFloorImage()")
+		except OSError as e:
+			pass
 		for campus in mapdatajson["campuses"]:
 			for building in campus["buildingList"]:
 				for floor in building["floorList"]:
@@ -146,7 +151,7 @@ class Request:
 							response.raw.decode_content = True
 							shutil.copyfileobj(response.raw, f)
 					except Exception as e:
-						logging.error("Error in method: getFloorImage()")
+						pass
 		logging.info("Successfuly downloaded images of the maps")
 		self.resizeImgs()
 
@@ -154,14 +159,20 @@ class Request:
 		width = 1280
 		height = 720
 
-		im1 = Image.open("maps/" + self.imgNames[0])
-		im5 = im1.resize((width, height), Image.ANTIALIAS)
-		im5.save("maps/1stFloor" + ".jpg")
+		name = "maps/" + self.imgNames[0]
+		img = Image.open(name)
+		img = img.resize((width, height), Image.ANTIALIAS)
+		img.save(name)
+		os.rename(name, "maps/1stFloor" + ".jpg")
 
-		im1 = Image.open("maps/" + self.imgNames[2])
-		im5 = im1.resize((width, height), Image.ANTIALIAS)
-		im5.save("maps/2ndFloor" + ".jpg")
+		name = "maps/" + self.imgNames[2]
+		img = Image.open(name)
+		img = img.resize((width, height), Image.ANTIALIAS)
+		img.save(name)
+		os.rename(name, "maps/2ndFloor" + ".jpg")
 
-		im1 = Image.open("maps/" + self.imgNames[1])
-		im5 = im1.resize((width, height), Image.ANTIALIAS)
-		im5.save("maps/3rdFloor" + ".jpg")
+		name = "maps/" + self.imgNames[1]
+		img = Image.open(name)
+		img = img.resize((width, height), Image.ANTIALIAS)
+		img.save(name)
+		os.rename(name, "maps/3rdFloor" + ".jpg")

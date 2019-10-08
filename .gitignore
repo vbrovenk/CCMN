@@ -2,5 +2,5 @@ env
 __pycache__
 .vscode
 .DS_Store
-maps
+maps/*.jpg
 log
