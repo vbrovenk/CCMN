@@ -57,7 +57,6 @@ class Window:
 		# 1st
 		self.canvas1 = Canvas(self.first_floor, width=1280, height=720, bg='black')
 		self.canvas1.pack(side='left')
-		# TODO SBASNAKA: are imagenames still hardcoded ?
 		self.image1 = ImageTk.PhotoImage(Image.open("maps/1stFloor.jpg"))
 		self.canvas1.create_image(0, 0, image = self.image1, anchor = 'nw')
 		# 2nd
@@ -99,7 +98,7 @@ class Window:
 		tmp.place(x = 1600, y = 130)
 
 		self.frame = Frame(self.presence_tab, background = "white", width=1000, height=110, borderwidth = 4)
-		self.frame.place(x = 100, y = 100)
+		self.frame.place(x = 350, y = 100)
 
 		self.visitors_label = Label(self.frame, text = "")
 		self.dwelltime_label = Label(self.frame, text = "")
@@ -154,7 +153,7 @@ class Window:
 		for device in coords:
 			if (self.message.get() == device["macAddress"] or self.message.get() == device["userName"]):
 				self.MACaddress = device["macAddress"]
-				self.detectingControllers = device["detectingControllers"]
+				self.ip = device["ipAddress"][0]
 				self.floor = device["mapInfo"]["mapHierarchyString"].split('>')[2]
 				self.ssid = device["ssId"]
 				self.manufacturer = device["manufacturer"]
@@ -162,9 +161,7 @@ class Window:
 				self.coordY = device["mapCoordinate"]["y"]
 				self.coordX *= 0.82
 				self.coordY *= 0.92
-				# TODO SBASNAKA: AttributeError: 'Window' object has no attribute 'colorize_found_oval'
-				# tried to search with mac-address
-				self.colorize_found_oval()
+				self.colorize_found()
 
 				return True
 
@@ -177,7 +174,10 @@ class Window:
 		self.a4["text"] = ""
 		if (len(self.message.get()) > 0):
 			if self.give_info() == True:
-				self.a1["text"] = self.detectingControllers
+				if (self.ip is not None):
+					self.a1["text"] = self.ip
+				else:
+					self.a1["text"] = "Null"
 				self.a1.place(x = 1500, y = 216)
 
 				self.a2["text"] = self.floor
@@ -216,14 +216,16 @@ class Window:
 					canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue', tags = "all_ovals")
 			if len(previous_info) > 0:
 				previous_info = [i["macAddress"] for i in previous_info]
+				# print("PREV -> ", previous_info)
+				# print("INFO -> ", info)
 				difference = [item for item in mac if item not in previous_info]
+				# print("DIFF -> ", difference)
 				for item in difference:
 					index = mac.index(item)
 					floor = info[index]["mapInfo"]["mapHierarchyString"].split('>')[2]
 					xlogin = info[index]["userName"]
 					if (xlogin == ""):
 						xlogin = "unknown"
-					# SBASNAKA TODO: check if everything is ok. can't see me connecting to network!
 					print ("Hi, @" + xlogin + " or mac:" + str(item) +  " now is on the " + floor)
 					last_connected["text"] = "Hi, @" + xlogin + " or mac:" + str(item) +  " now is on the " + floor
 			previous_info = info
@@ -284,7 +286,7 @@ class Window:
 		box = Listbox(self.frame,
 						width=21,
 						height=4,
-						bg="blue",
+						bg="#0D8105",
 						selectbackground="#5EAA5A",
 						relief=RAISED,
 						font=("Avenir, 18"),
@@ -306,7 +308,7 @@ class Window:
 
 		self.visitors_label = Label(self.frame, text='Total Visitors ' + str(total_visitors[1]),
 				relief=RAISED,
-				bg="blue",
+				bg="#0D9004",
 				font=("Times New Roman", 30),
 				fg='white')
 
@@ -320,7 +322,7 @@ class Window:
 		box = Listbox(self.frame,
 						width=33,
 						height=5,
-						bg="blue",
+						bg="#CA0707",
 						selectbackground="#5EAA5A",
 						relief=RAISED,
 						font=("Avenir, 18"),
@@ -343,7 +345,7 @@ class Window:
 
 		self.dwelltime_label = Label(self.frame, text='Average Dwell Time ' + str(dwell[1]) + " mins",
 				relief=RAISED,
-				bg="blue",
+				bg="#EB0606",
 				font=("Times New Roman", 30),
 				fg='white')
 
@@ -356,7 +358,7 @@ class Window:
 		box = Listbox(self.frame,
 						width=20,
 						height=1,
-						bg="blue",
+						bg="#0885B4",
 						selectbackground="#5EAA5A",
 						relief=RAISED,
 						font=("Avenir, 18"),
@@ -373,12 +375,11 @@ class Window:
 		def forget(event):
 			box.grid_forget()
 
-		# SBASNAKA TODO: change buttons color similar to bars or pie colors
 		text = "Peak Hour " + str(peakhour[0]) + "-" + str(int(peakhour[0]) + 1)
 
 		self.peakhour_label = Label(self.frame, text = text,
 				relief=RAISED,
-				bg="blue",
+				bg="#0792C6",
 				font=("Times New Roman", 30),
 				fg='white')
 
@@ -392,7 +393,7 @@ class Window:
 		box = Listbox(self.frame,
 						width=24,
 						height=3,
-						bg="blue",
+						bg="#DFAF2F",
 						selectbackground="#5EAA5A",
 						relief=RAISED,
 						font=("Avenir, 18"),
@@ -413,7 +414,7 @@ class Window:
 
 		self.conversion_label = Label(self.frame, text='Conversion Rate ' + str(conversion_rate[0]) + "%",
 				relief=RAISED,
-				bg="blue",
+				bg="#F0BC32",
 				font=("Times New Roman", 30),
 				fg='white')
 
