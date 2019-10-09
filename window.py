@@ -137,17 +137,14 @@ class Window:
 		self.a4 = Label(self.map_tab, text ="", font = "Avenir, 18", fg = '#666699')
 
 	def colorize_found(self):
+		self.canvas1.delete("green1")
+		self.canvas2.delete("green2")
+		self.canvas3.delete("green3")
 		if (self.floor == "1st_Floor"):
-			if self.firstFloor_oval is not None:
-				self.canvas1.delete("green1")
 			self.firstFloor_oval = self.canvas1.create_oval(self.coordX - 10, self.coordY - 10, self.coordX + 10, self.coordY + 10, fill = '#ff0000', tags = "green1")
 		if (self.floor == "2nd_Floor"):
-			if self.secondFloor_oval is not None:
-				self.canvas2.delete("green2")
 			self.secondFloor_oval = self.canvas2.create_oval(self.coordX - 10, self.coordY - 10, self.coordX + 10, self.coordY + 10, fill = '#ff0000', tags = "green2")
 		if (self.floor == "3rd_Floor"):
-			if self.thirdFloor_oval is not None:
-				self.canvas3.delete("green3")
 			self.thirdFloor_oval = self.canvas3.create_oval(self.coordX - 10, self.coordY - 10, self.coordX + 10, self.coordY + 10, fill = '#ff0000', tags = "green3")
 
 	def give_info(self):
