@@ -11,6 +11,7 @@ import time
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import numpy as np
+from tkinter import messagebox
 
 class Window:
 	def __init__(self, request):
@@ -18,6 +19,8 @@ class Window:
 		self.y = 897
 
 		self.request = request
+
+		self.request.getFloorImage()
 
 		self.window = Tk()
 		self.window.title("CCMN")
@@ -67,7 +70,6 @@ class Window:
 		# 3rd
 		self.canvas3 = Canvas(self.third_floor, width=1280, height=720, bg='black')
 		self.canvas3.pack(side='left')
-
 		self.image3 = ImageTk.PhotoImage(Image.open("maps/3rdFloor.jpg"))
 		self.canvas3.create_image(0, 0, image = self.image3, anchor = 'nw')
 
@@ -153,7 +155,10 @@ class Window:
 		for device in coords:
 			if (self.message.get() == device["macAddress"] or self.message.get() == device["userName"]):
 				self.MACaddress = device["macAddress"]
-				self.ip = device["ipAddress"][0]
+				if device["ipAddress"]:
+					self.ip = device["ipAddress"][0]
+				else:
+					self.ip = 'IP is not provided'
 				self.floor = device["mapInfo"]["mapHierarchyString"].split('>')[2]
 				self.ssid = device["ssId"]
 				self.manufacturer = device["manufacturer"]
@@ -174,10 +179,7 @@ class Window:
 		self.a4["text"] = ""
 		if (len(self.message.get()) > 0):
 			if self.give_info() == True:
-				if (self.ip is not None):
-					self.a1["text"] = self.ip
-				else:
-					self.a1["text"] = "Null"
+				self.a1["text"] = self.ip
 				self.a1.place(x = 1500, y = 216)
 
 				self.a2["text"] = self.floor
@@ -186,15 +188,13 @@ class Window:
 				self.a3["text"] = self.manufacturer
 				self.a3.place(x = 1500, y = 376)
 
-				self.search_entry.delete(0, END)
 			else:
 				self.a1["text"] = "Not Found"
 				self.a1.place(x = 1500, y = 216)
-				self.search_entry.delete(0, END)
+
 		else:
 			self.a1["text"] = "Empty Field"
 			self.a1.place(x = 1500, y = 216)
-			self.search_entry.delete(0, END)
 
 	def printDevices(self, canvas, needFloor):
 		previous_info = []
@@ -216,10 +216,7 @@ class Window:
 					canvas.create_oval(mapCoordinateX - 3, mapCoordinateY - 3, mapCoordinateX + 3, mapCoordinateY + 3, fill='blue', tags = "all_ovals")
 			if len(previous_info) > 0:
 				previous_info = [i["macAddress"] for i in previous_info]
-				# print("PREV -> ", previous_info)
-				# print("INFO -> ", info)
 				difference = [item for item in mac if item not in previous_info]
-				# print("DIFF -> ", difference)
 				for item in difference:
 					index = mac.index(item)
 					floor = info[index]["mapInfo"]["mapHierarchyString"].split('>')[2]
@@ -227,6 +224,7 @@ class Window:
 					if (xlogin == ""):
 						xlogin = "unknown"
 					print ("Hi, @" + xlogin + " or mac:" + str(item) +  " now is on the " + floor)
+					last_connected["text"] = ""
 					last_connected["text"] = "Hi, @" + xlogin + " or mac:" + str(item) +  " now is on the " + floor
 			previous_info = info
 
@@ -442,20 +440,32 @@ class Window:
 		to_button = Button(top, text = "End Date", command = self.takeEndDate)
 		to_button.pack(side = RIGHT)
 
+	def date_is_correct(self):
+		start = self.startdate_entry.get()
+		start_date = datetime.datetime.strptime(start, '%Y-%m-%d')
+		end = self.enddate_entry.get()
+		end_date = datetime.datetime.strptime(end, '%Y-%m-%d')
+		if end_date < start_date:
+			return False
+		return True
+
 	def change(self):
-		self.visitors_label.destroy()
-		self.dwelltime_label.destroy()
-		self.peakhour_label.destroy()
-		self.conversion_label.destroy()
+		if self.date_is_correct():
+			self.visitors_label.destroy()
+			self.dwelltime_label.destroy()
+			self.peakhour_label.destroy()
+			self.conversion_label.destroy()
 
-		self.total_visitors_label()
-		self.dwell_time_label()
-		self.peak_hour_label()
-		self.conversion_rate_label()
+			self.total_visitors_label()
+			self.dwell_time_label()
+			self.peak_hour_label()
+			self.conversion_rate_label()
 
-		self.repeatVisitorsGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
-		self.dwellTimeGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
-		self.proximityGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
+			self.repeatVisitorsGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
+			self.dwellTimeGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
+			self.proximityGraph.show(self.startdate_entry.get(), self.enddate_entry.get())
+		else:
+			messagebox.showinfo("Error", "End date can't be less than start date")
 
 	def on_map_tab_selected(self, event, canvas1, canvas2, canvas3):
 		selected_tab = event.widget.select()

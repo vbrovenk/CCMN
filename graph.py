@@ -202,9 +202,6 @@ class Graph:
 		bars = axes[0]
 		pie = axes[1]
 
-		# SBASNAKA TODO: resolve crash with mouse scroll
-		# is it still present for you ? for me NO
-
 		forecast = self.__makeForecast()
 		if (self.tabName == 'Repeat Visitors'):
 			labels, xaxis = self.__prepareRepeatVisitorsGraph(bars, pie, forecast, startDate, endDate)
